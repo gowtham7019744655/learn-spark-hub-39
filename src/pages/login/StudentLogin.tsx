@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 const StudentLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [usn, setUsn] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const StudentLogin = () => {
     e.preventDefault();
     setLoading(true);
     
-    const success = await login(email, password, 'student');
+    const success = await login(email, password, 'student', usn);
     
     if (success) {
       toast.success('Welcome back, Student!');
@@ -47,6 +48,17 @@ const StudentLogin = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="usn">USN (University Serial Number)</Label>
+                <Input
+                  id="usn"
+                  type="text"
+                  placeholder="1XX21CS001"
+                  value={usn}
+                  onChange={(e) => setUsn(e.target.value.toUpperCase())}
+                  required
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
