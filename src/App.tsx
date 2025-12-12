@@ -15,6 +15,7 @@ import ParentDashboard from "./pages/dashboards/ParentDashboard";
 import ChatbotPage from "./pages/ChatbotPage";
 import TestsPage from "./pages/TestsPage";
 import AdminPage from "./pages/AdminPage";
+import ManageSubjectsPage from "./pages/ManageSubjectsPage";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/chatbot" element={<ChatbotPage />} />
             <Route path="/tests" element={<TestsPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/manage-subjects" element={<ManageSubjectsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

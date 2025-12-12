@@ -50,6 +50,11 @@ export const Navbar = () => {
                 <Link to="/tests">
                   <Button variant="ghost">Tests</Button>
                 </Link>
+                {user?.role === 'lecturer' && (
+                  <Link to="/manage-subjects">
+                    <Button variant="ghost">Manage Subjects</Button>
+                  </Link>
+                )}
                 <span className="text-sm text-muted-foreground">
                   {user?.name} ({user?.role})
                 </span>
@@ -107,6 +112,13 @@ export const Navbar = () => {
                       Tests
                     </Button>
                   </Link>
+                  {user?.role === 'lecturer' && (
+                    <Link to="/manage-subjects" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start">
+                        Manage Subjects
+                      </Button>
+                    </Link>
+                  )}
                   <Button
                     variant="outline"
                     className="mt-2"
