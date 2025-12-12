@@ -14,7 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      student_marks: {
+        Row: {
+          created_at: string
+          external_marks: number
+          grade: string | null
+          id: string
+          internal_marks: number
+          student_usn: string
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          external_marks?: number
+          grade?: string | null
+          id?: string
+          internal_marks?: number
+          student_usn: string
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          external_marks?: number
+          grade?: string | null
+          id?: string
+          internal_marks?: number
+          student_usn?: string
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_marks_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          created_at: string
+          id: string
+          max_external: number
+          max_internal: number
+          name: string
+          semester: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_external?: number
+          max_internal?: number
+          name: string
+          semester?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_external?: number
+          max_internal?: number
+          name?: string
+          semester?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

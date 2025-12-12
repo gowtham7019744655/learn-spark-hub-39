@@ -1,7 +1,7 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useStudentMarks } from '@/hooks/useStudentMarks';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link, Navigate } from 'react-router-dom';
@@ -33,15 +33,6 @@ const performanceData = [
   { month: 'Jun', score: 88 },
 ];
 
-const subjectMarks = [
-  { name: 'Mathematics', internal: 42, external: 85, total: 127, maxInternal: 50, maxExternal: 100, grade: 'A' },
-  { name: 'Physics', internal: 38, external: 78, total: 116, maxInternal: 50, maxExternal: 100, grade: 'B+' },
-  { name: 'Computer Science', internal: 45, external: 92, total: 137, maxInternal: 50, maxExternal: 100, grade: 'A+' },
-  { name: 'English', internal: 35, external: 72, total: 107, maxInternal: 50, maxExternal: 100, grade: 'B' },
-  { name: 'Data Structures', internal: 40, external: 88, total: 128, maxInternal: 50, maxExternal: 100, grade: 'A' },
-  { name: 'Digital Electronics', internal: 36, external: 75, total: 111, maxInternal: 50, maxExternal: 100, grade: 'B+' },
-];
-
 const upcomingAssignments = [
   { title: 'Calculus Problem Set', course: 'Mathematics', due: '2 days' },
   { title: 'Physics Lab Report', course: 'Physics', due: '5 days' },
@@ -50,10 +41,17 @@ const upcomingAssignments = [
 
 const StudentDashboard = () => {
   const { user, role, isAuthenticated } = useAuth();
+  const { marks, loading } = useStudentMarks(user?.usn);
 
   if (!isAuthenticated || role !== 'student') {
     return <Navigate to="/login/student" replace />;
   }
+
+  const totalInternal = marks.reduce((acc, m) => acc + m.internal_marks, 0);
+  const totalExternal = marks.reduce((acc, m) => acc + m.external_marks, 0);
+  const totalMarks = totalInternal + totalExternal;
+  const maxTotal = marks.reduce((acc, m) => acc + (m.subjects?.max_internal || 50) + (m.subjects?.max_external || 100), 0);
+  const avgPercentage = marks.length > 0 ? Math.round((totalMarks / maxTotal) * 100) : 0;
 
   return (
     <MainLayout>
@@ -114,8 +112,8 @@ const StudentDashboard = () => {
                 <BookOpen className="h-6 w-6 text-secondary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">6</p>
-                <p className="text-sm text-muted-foreground">Active Courses</p>
+                <p className="text-2xl font-bold text-foreground">{marks.length}</p>
+                <p className="text-sm text-muted-foreground">Subjects</p>
               </div>
             </CardContent>
           </Card>
@@ -136,7 +134,7 @@ const StudentDashboard = () => {
                 <Award className="h-6 w-6 text-secondary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">85%</p>
+                <p className="text-2xl font-bold text-foreground">{avgPercentage}%</p>
                 <p className="text-sm text-muted-foreground">Avg. Score</p>
               </div>
             </CardContent>
@@ -209,53 +207,63 @@ const StudentDashboard = () => {
             <CardDescription>Detailed marks for all subjects in current semester</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Subject</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Internal (50)</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">External (100)</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Total (150)</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Grade</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subjectMarks.map((subject, index) => (
-                    <tr key={index} className="border-b border-border last:border-0">
-                      <td className="px-4 py-3 font-medium text-foreground">{subject.name}</td>
-                      <td className="px-4 py-3 text-center text-foreground">{subject.internal}</td>
-                      <td className="px-4 py-3 text-center text-foreground">{subject.external}</td>
-                      <td className="px-4 py-3 text-center font-semibold text-foreground">{subject.total}</td>
+            {loading ? (
+              <p className="text-muted-foreground">Loading marks...</p>
+            ) : marks.length === 0 ? (
+              <p className="text-muted-foreground">No marks available yet. Contact your lecturer to add marks.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Subject</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Internal</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">External</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Total</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Grade</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {marks.map((mark) => (
+                      <tr key={mark.id} className="border-b border-border last:border-0">
+                        <td className="px-4 py-3 font-medium text-foreground">{mark.subjects?.name || 'Unknown'}</td>
+                        <td className="px-4 py-3 text-center text-foreground">
+                          {mark.internal_marks} / {mark.subjects?.max_internal || 50}
+                        </td>
+                        <td className="px-4 py-3 text-center text-foreground">
+                          {mark.external_marks} / {mark.subjects?.max_external || 100}
+                        </td>
+                        <td className="px-4 py-3 text-center font-semibold text-foreground">
+                          {mark.internal_marks + mark.external_marks}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <Badge variant={mark.grade?.startsWith('A') ? 'default' : 'secondary'}>
+                            {mark.grade || '-'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-muted/50">
+                      <td className="px-4 py-3 font-semibold text-foreground">Total / Percentage</td>
+                      <td className="px-4 py-3 text-center font-semibold text-foreground">
+                        {totalInternal}
+                      </td>
+                      <td className="px-4 py-3 text-center font-semibold text-foreground">
+                        {totalExternal}
+                      </td>
+                      <td className="px-4 py-3 text-center font-semibold text-foreground">
+                        {totalMarks}
+                      </td>
                       <td className="px-4 py-3 text-center">
-                        <Badge variant={subject.grade.startsWith('A') ? 'default' : 'secondary'}>
-                          {subject.grade}
-                        </Badge>
+                        <Badge>{avgPercentage}%</Badge>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-muted/50">
-                    <td className="px-4 py-3 font-semibold text-foreground">Total / Percentage</td>
-                    <td className="px-4 py-3 text-center font-semibold text-foreground">
-                      {subjectMarks.reduce((acc, s) => acc + s.internal, 0)} / {subjectMarks.length * 50}
-                    </td>
-                    <td className="px-4 py-3 text-center font-semibold text-foreground">
-                      {subjectMarks.reduce((acc, s) => acc + s.external, 0)} / {subjectMarks.length * 100}
-                    </td>
-                    <td className="px-4 py-3 text-center font-semibold text-foreground">
-                      {subjectMarks.reduce((acc, s) => acc + s.total, 0)} / {subjectMarks.length * 150}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge>
-                        {Math.round((subjectMarks.reduce((acc, s) => acc + s.total, 0) / (subjectMarks.length * 150)) * 100)}%
-                      </Badge>
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+                  </tfoot>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
 
