@@ -33,11 +33,13 @@ const performanceData = [
   { month: 'Jun', score: 88 },
 ];
 
-const courses = [
-  { name: 'Mathematics', grade: 'A', progress: 92, color: 'bg-primary' },
-  { name: 'Physics', grade: 'B+', progress: 85, color: 'bg-secondary' },
-  { name: 'Computer Science', grade: 'A', progress: 95, color: 'bg-primary' },
-  { name: 'English', grade: 'B', progress: 78, color: 'bg-muted' },
+const subjectMarks = [
+  { name: 'Mathematics', internal: 42, external: 85, total: 127, maxInternal: 50, maxExternal: 100, grade: 'A' },
+  { name: 'Physics', internal: 38, external: 78, total: 116, maxInternal: 50, maxExternal: 100, grade: 'B+' },
+  { name: 'Computer Science', internal: 45, external: 92, total: 137, maxInternal: 50, maxExternal: 100, grade: 'A+' },
+  { name: 'English', internal: 35, external: 72, total: 107, maxInternal: 50, maxExternal: 100, grade: 'B' },
+  { name: 'Data Structures', internal: 40, external: 88, total: 128, maxInternal: 50, maxExternal: 100, grade: 'A' },
+  { name: 'Digital Electronics', internal: 36, external: 75, total: 111, maxInternal: 50, maxExternal: 100, grade: 'B+' },
 ];
 
 const upcomingAssignments = [
@@ -56,6 +58,33 @@ const StudentDashboard = () => {
   return (
     <MainLayout>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Student Details Card */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-2xl">Student Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Name</p>
+                <p className="font-semibold text-foreground">{user?.name}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">USN</p>
+                <p className="font-semibold text-foreground">{user?.usn || 'N/A'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-semibold text-foreground">{user?.email}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Semester</p>
+                <p className="font-semibold text-foreground">6th Semester</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">
@@ -173,31 +202,59 @@ const StudentDashboard = () => {
           </Card>
         </div>
 
-        {/* Courses */}
+        {/* Subject Marks Table */}
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>My Courses</CardTitle>
-            <CardDescription>Current semester course progress</CardDescription>
+            <CardTitle>Subject-wise Marks</CardTitle>
+            <CardDescription>Detailed marks for all subjects in current semester</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              {courses.map((course, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between rounded-lg border border-border p-4"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-foreground">{course.name}</p>
-                      <Badge>{course.grade}</Badge>
-                    </div>
-                    <Progress value={course.progress} className="mt-2" />
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {course.progress}% complete
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Subject</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Internal (50)</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">External (100)</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Total (150)</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Grade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subjectMarks.map((subject, index) => (
+                    <tr key={index} className="border-b border-border last:border-0">
+                      <td className="px-4 py-3 font-medium text-foreground">{subject.name}</td>
+                      <td className="px-4 py-3 text-center text-foreground">{subject.internal}</td>
+                      <td className="px-4 py-3 text-center text-foreground">{subject.external}</td>
+                      <td className="px-4 py-3 text-center font-semibold text-foreground">{subject.total}</td>
+                      <td className="px-4 py-3 text-center">
+                        <Badge variant={subject.grade.startsWith('A') ? 'default' : 'secondary'}>
+                          {subject.grade}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-muted/50">
+                    <td className="px-4 py-3 font-semibold text-foreground">Total / Percentage</td>
+                    <td className="px-4 py-3 text-center font-semibold text-foreground">
+                      {subjectMarks.reduce((acc, s) => acc + s.internal, 0)} / {subjectMarks.length * 50}
+                    </td>
+                    <td className="px-4 py-3 text-center font-semibold text-foreground">
+                      {subjectMarks.reduce((acc, s) => acc + s.external, 0)} / {subjectMarks.length * 100}
+                    </td>
+                    <td className="px-4 py-3 text-center font-semibold text-foreground">
+                      {subjectMarks.reduce((acc, s) => acc + s.total, 0)} / {subjectMarks.length * 150}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <Badge>
+                        {Math.round((subjectMarks.reduce((acc, s) => acc + s.total, 0) / (subjectMarks.length * 150)) * 100)}%
+                      </Badge>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </CardContent>
         </Card>

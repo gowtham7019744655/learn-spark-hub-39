@@ -7,12 +7,13 @@ interface User {
   name: string;
   email: string;
   role: UserRole;
+  usn?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   role: UserRole;
-  login: (email: string, password: string, role: UserRole) => Promise<boolean>;
+  login: (email: string, password: string, role: UserRole, usn?: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -22,7 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
+  const login = async (email: string, password: string, role: UserRole, usn?: string): Promise<boolean> => {
     // Simulated login - will be replaced with real auth
     if (email && password && role) {
       setUser({
@@ -30,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name: email.split('@')[0],
         email,
         role,
+        usn,
       });
       return true;
     }
