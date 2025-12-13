@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Navigate } from 'react-router-dom';
 import { Bot, Send, User, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: number;
@@ -26,7 +27,7 @@ const quickQuestions = [
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 
 const ChatbotPage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, session, loading } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -45,6 +46,16 @@ const ChatbotPage = () => {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
@@ -77,11 +88,18 @@ const ChatbotPage = () => {
     let assistantContent = '';
 
     try {
+      // Get the current session token for authentication
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession?.access_token) {
+        throw new Error('Not authenticated');
+      }
+
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${currentSession.access_token}`,
         },
         body: JSON.stringify({ messages: conversationHistory }),
       });

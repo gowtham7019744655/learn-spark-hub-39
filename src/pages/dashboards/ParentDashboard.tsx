@@ -59,7 +59,7 @@ const childInfo = {
 };
 
 const ParentDashboard = () => {
-  const { user, role, isAuthenticated } = useAuth();
+  const { profile, role, isAuthenticated } = useAuth();
 
   if (!isAuthenticated || role !== 'parent') {
     return <Navigate to="/login/parent" replace />;
@@ -192,7 +192,7 @@ const ParentDashboard = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">
-            Welcome, {user?.name}!
+            Welcome, {profile?.full_name || profile?.email}!
           </h1>
           <p className="text-muted-foreground">
             Monitor your child's academic progress

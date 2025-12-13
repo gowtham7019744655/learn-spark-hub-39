@@ -5,18 +5,18 @@ import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 export const Navbar = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { profile, role, signOut, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate('/');
   };
 
   const getDashboardLink = () => {
-    if (!user) return '/';
-    switch (user.role) {
+    if (!role) return '/';
+    switch (role) {
       case 'student':
         return '/student/dashboard';
       case 'lecturer':
@@ -50,13 +50,13 @@ export const Navbar = () => {
                 <Link to="/tests">
                   <Button variant="ghost">Tests</Button>
                 </Link>
-                {user?.role === 'lecturer' && (
+                {role === 'lecturer' && (
                   <Link to="/manage-subjects">
                     <Button variant="ghost">Manage Subjects</Button>
                   </Link>
                 )}
                 <span className="text-sm text-muted-foreground">
-                  {user?.name} ({user?.role})
+                  {profile?.full_name || profile?.email} ({role})
                 </span>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -112,7 +112,7 @@ export const Navbar = () => {
                       Tests
                     </Button>
                   </Link>
-                  {user?.role === 'lecturer' && (
+                  {role === 'lecturer' && (
                     <Link to="/manage-subjects" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start">
                         Manage Subjects
