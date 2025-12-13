@@ -70,7 +70,7 @@ const courses = [
 ];
 
 const LecturerDashboard = () => {
-  const { user, role, isAuthenticated } = useAuth();
+  const { profile, role, isAuthenticated } = useAuth();
   const { assignments, isLoading, addAssignment, deleteAssignment } = useAssignments();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAssignment, setNewAssignment] = useState({
@@ -91,7 +91,7 @@ const LecturerDashboard = () => {
 
     addAssignment.mutate({
       ...newAssignment,
-      created_by: user?.name || 'Unknown',
+      created_by: profile?.full_name || profile?.email || 'Unknown',
     }, {
       onSuccess: () => {
         setIsDialogOpen(false);
@@ -111,7 +111,7 @@ const LecturerDashboard = () => {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Welcome, Prof. {user?.name}!
+              Welcome, Prof. {profile?.full_name || profile?.email}!
             </h1>
             <p className="text-muted-foreground">Manage your courses and students</p>
           </div>

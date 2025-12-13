@@ -40,8 +40,8 @@ const upcomingAssignments = [
 ];
 
 const StudentDashboard = () => {
-  const { user, role, isAuthenticated } = useAuth();
-  const { marks, loading } = useStudentMarks(user?.usn);
+  const { profile, role, isAuthenticated, user } = useAuth();
+  const { marks, loading } = useStudentMarks(profile?.usn || undefined);
 
   if (!isAuthenticated || role !== 'student') {
     return <Navigate to="/login/student" replace />;
@@ -65,15 +65,15 @@ const StudentDashboard = () => {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-semibold text-foreground">{user?.name}</p>
+                <p className="font-semibold text-foreground">{profile?.full_name}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">USN</p>
-                <p className="font-semibold text-foreground">{user?.usn || 'N/A'}</p>
+                <p className="font-semibold text-foreground">{profile?.usn || 'N/A'}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-semibold text-foreground">{user?.email}</p>
+                <p className="font-semibold text-foreground">{profile?.email || user?.email}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Semester</p>
@@ -86,7 +86,7 @@ const StudentDashboard = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">
-            Welcome back, {user?.name}!
+            Welcome back, {profile?.full_name || profile?.email}!
           </h1>
           <p className="text-muted-foreground">
             Here's an overview of your academic progress
