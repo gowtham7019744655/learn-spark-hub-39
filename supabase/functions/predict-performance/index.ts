@@ -2,20 +2,48 @@ import "https://deno.land/std@0.168.0/dotenv/load.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+// Allowed origins for CORS - restrict to known domains
+const ALLOWED_ORIGINS = [
+  'https://dahcwfsggrdxmaccmjdd.lovableproject.com',
+  'http://localhost:5173',
+  'http://localhost:8080',
+  'http://localhost:3000',
+];
+
+const getCorsHeaders = (requestOrigin: string | null) => {
+  const origin = requestOrigin || '';
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) 
+    ? origin 
+    : ALLOWED_ORIGINS[0];
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'true',
+  };
 };
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Reject requests from disallowed origins
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    console.log(`Rejected request from unauthorized origin: ${origin}`);
+    return new Response(JSON.stringify({ error: "Origin not allowed" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "No authorization header" }), {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -45,7 +73,7 @@ serve(async (req) => {
       .single();
 
     if (!profile?.usn) {
-      return new Response(JSON.stringify({ error: "No USN found" }), {
+      return new Response(JSON.stringify({ error: "Profile not configured" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -67,8 +95,8 @@ serve(async (req) => {
       .eq("student_usn", profile.usn);
 
     if (marksError) {
-      console.error("Error fetching marks:", marksError);
-      return new Response(JSON.stringify({ error: "Failed to fetch marks" }), {
+      console.log("Error fetching marks data");
+      return new Response(JSON.stringify({ error: "Failed to fetch data" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -107,7 +135,8 @@ serve(async (req) => {
     // Call Lovable AI for prediction
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.log("Server configuration error");
+      throw new Error("Server configuration error");
     }
 
     const systemPrompt = `You are an educational performance prediction AI. Analyze student performance data and provide:
@@ -176,8 +205,7 @@ Provide prediction in this exact JSON format:
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const errorText = await aiResponse.text();
-      console.error("AI API error:", aiResponse.status, errorText);
+      console.log("AI API error:", aiResponse.status);
       throw new Error("Failed to get AI prediction");
     }
 
@@ -193,7 +221,7 @@ Provide prediction in this exact JSON format:
       const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : aiContent;
       prediction = JSON.parse(jsonStr);
     } catch (parseError) {
-      console.error("Failed to parse AI response:", aiContent);
+      console.log("Failed to parse AI response, using fallback");
       // Fallback prediction based on data
       prediction = {
         predictedScore: avgPerformance,
@@ -226,9 +254,9 @@ Provide prediction in this exact JSON format:
     });
 
   } catch (error) {
-    console.error("Error in predict-performance:", error);
+    console.log("Error in predict-performance:", error instanceof Error ? error.message : "Unknown error");
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : "Unknown error" 
+      error: "An error occurred" 
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

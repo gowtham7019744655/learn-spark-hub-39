@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logError, getSafeErrorMessage } from '@/lib/errorLogger';
+import { SubjectSchema, validateInput, safeParseInt } from '@/lib/validation';
 
 export interface Subject {
   id: string;
@@ -23,8 +25,8 @@ export const useSubjects = () => {
       .order('name');
     
     if (error) {
-      console.error('Error fetching subjects:', error);
-      toast.error('Failed to load subjects');
+      logError('fetchSubjects', error);
+      toast.error(getSafeErrorMessage(error));
     } else {
       setSubjects(data || []);
     }
@@ -32,13 +34,32 @@ export const useSubjects = () => {
   };
 
   const addSubject = async (name: string, maxInternal: number, maxExternal: number, semester: number) => {
+    // Validate input before database operation
+    const validation = validateInput(SubjectSchema, {
+      name,
+      max_internal: safeParseInt(maxInternal),
+      max_external: safeParseInt(maxExternal),
+      semester: safeParseInt(semester),
+    });
+
+    if ('error' in validation) {
+      toast.error(validation.error);
+      return false;
+    }
+
+    const validatedData = validation.data;
     const { error } = await supabase
       .from('subjects')
-      .insert({ name, max_internal: maxInternal, max_external: maxExternal, semester });
+      .insert({
+        name: validatedData.name,
+        max_internal: validatedData.max_internal,
+        max_external: validatedData.max_external,
+        semester: validatedData.semester,
+      });
     
     if (error) {
-      console.error('Error adding subject:', error);
-      toast.error('Failed to add subject');
+      logError('addSubject', error);
+      toast.error(getSafeErrorMessage(error));
       return false;
     }
     toast.success('Subject added successfully');
@@ -53,8 +74,8 @@ export const useSubjects = () => {
       .eq('id', id);
     
     if (error) {
-      console.error('Error deleting subject:', error);
-      toast.error('Failed to delete subject');
+      logError('deleteSubject', error);
+      toast.error(getSafeErrorMessage(error));
       return false;
     }
     toast.success('Subject deleted successfully');
