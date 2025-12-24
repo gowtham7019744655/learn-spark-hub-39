@@ -2,6 +2,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudentMarks } from '@/hooks/useStudentMarks';
 import { RootCauseAnalyzer } from '@/components/analysis/RootCauseAnalyzer';
+import { ProgressDashboard } from '@/components/analysis/ProgressDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import {
   MessageSquare,
   Calendar,
   Target,
+  BarChart3,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -148,9 +150,13 @@ const StudentDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="progress" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Progress
+            </TabsTrigger>
             <TabsTrigger value="analysis" className="flex items-center gap-2">
               <Target className="h-4 w-4" />
-              Root-Cause Analysis
+              Root-Cause
             </TabsTrigger>
           </TabsList>
 
@@ -213,6 +219,10 @@ const StudentDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="progress">
+            <ProgressDashboard marks={marks} loading={loading} />
           </TabsContent>
 
           <TabsContent value="analysis">
