@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logError, getSafeErrorMessage } from '@/lib/errorLogger';
+import { StudentMarksSchema, validateInput, safeParseInt } from '@/lib/validation';
 
 export interface StudentMark {
   id: string;
@@ -45,8 +47,8 @@ export const useRealtimeStudentMarks = (studentUsn?: string) => {
       .eq('student_usn', studentUsn);
     
     if (error) {
-      console.error('Error fetching marks:', error);
-      toast.error('Failed to load marks');
+      logError('fetchMarks', error);
+      toast.error(getSafeErrorMessage(error));
     } else {
       setMarks(data || []);
     }
@@ -63,6 +65,22 @@ export const useRealtimeStudentMarks = (studentUsn?: string) => {
     const targetUsn = usn || studentUsn;
     if (!targetUsn) return false;
 
+    // Validate input
+    const validation = validateInput(StudentMarksSchema, {
+      student_usn: targetUsn,
+      subject_id: subjectId,
+      internal_marks: safeParseInt(internalMarks),
+      external_marks: safeParseInt(externalMarks),
+      grade: grade || undefined,
+    });
+
+    if ('error' in validation) {
+      toast.error(validation.error);
+      return false;
+    }
+
+    const validatedData = validation.data;
+
     const { data: existing } = await supabase
       .from('student_marks')
       .select('id')
@@ -74,15 +92,15 @@ export const useRealtimeStudentMarks = (studentUsn?: string) => {
       const { error } = await supabase
         .from('student_marks')
         .update({ 
-          internal_marks: internalMarks, 
-          external_marks: externalMarks, 
+          internal_marks: validatedData.internal_marks, 
+          external_marks: validatedData.external_marks, 
           grade 
         })
         .eq('id', existing.id);
       
       if (error) {
-        console.error('Error updating marks:', error);
-        toast.error('Failed to update marks');
+        logError('updateMarks', error);
+        toast.error(getSafeErrorMessage(error));
         return false;
       }
       toast.success('Marks updated successfully');
@@ -90,16 +108,16 @@ export const useRealtimeStudentMarks = (studentUsn?: string) => {
       const { error } = await supabase
         .from('student_marks')
         .insert({ 
-          student_usn: targetUsn, 
-          subject_id: subjectId, 
-          internal_marks: internalMarks, 
-          external_marks: externalMarks, 
+          student_usn: validatedData.student_usn, 
+          subject_id: validatedData.subject_id, 
+          internal_marks: validatedData.internal_marks, 
+          external_marks: validatedData.external_marks, 
           grade 
         });
       
       if (error) {
-        console.error('Error adding marks:', error);
-        toast.error('Failed to add marks');
+        logError('addMarks', error);
+        toast.error(getSafeErrorMessage(error));
         return false;
       }
       toast.success('Marks added successfully');
@@ -115,8 +133,8 @@ export const useRealtimeStudentMarks = (studentUsn?: string) => {
       .eq('id', id);
     
     if (error) {
-      console.error('Error deleting marks:', error);
-      toast.error('Failed to delete marks');
+      logError('deleteMark', error);
+      toast.error(getSafeErrorMessage(error));
       return false;
     }
     toast.success('Marks deleted successfully');
@@ -139,7 +157,6 @@ export const useRealtimeStudentMarks = (studentUsn?: string) => {
           table: 'student_marks',
         },
         (payload) => {
-          console.log('Marks change:', payload);
           // Check if this update is for the current student
           const newRecord = payload.new as any;
           const oldRecord = payload.old as any;

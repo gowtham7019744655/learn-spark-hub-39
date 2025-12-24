@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logError, getSafeErrorMessage } from '@/lib/errorLogger';
 
 export interface Test {
   id: string;
@@ -51,8 +52,8 @@ export const useTests = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching tests:', error);
-      toast.error('Failed to load tests');
+      logError('fetchTests', error);
+      toast.error(getSafeErrorMessage(error));
     } else {
       setTests((data as Test[]) || []);
     }
@@ -62,8 +63,8 @@ export const useTests = () => {
   const addTest = async (test: Omit<Test, 'id' | 'created_at' | 'updated_at' | 'subjects'>) => {
     const { error } = await supabase.from('tests').insert(test);
     if (error) {
-      console.error('Error adding test:', error);
-      toast.error('Failed to add test');
+      logError('addTest', error);
+      toast.error(getSafeErrorMessage(error));
       return false;
     }
     toast.success('Test created successfully');
@@ -73,8 +74,8 @@ export const useTests = () => {
   const updateTest = async (id: string, updates: Partial<Test>) => {
     const { error } = await supabase.from('tests').update(updates).eq('id', id);
     if (error) {
-      console.error('Error updating test:', error);
-      toast.error('Failed to update test');
+      logError('updateTest', error);
+      toast.error(getSafeErrorMessage(error));
       return false;
     }
     toast.success('Test updated successfully');
@@ -84,8 +85,8 @@ export const useTests = () => {
   const deleteTest = async (id: string) => {
     const { error } = await supabase.from('tests').delete().eq('id', id);
     if (error) {
-      console.error('Error deleting test:', error);
-      toast.error('Failed to delete test');
+      logError('deleteTest', error);
+      toast.error(getSafeErrorMessage(error));
       return false;
     }
     toast.success('Test deleted successfully');
@@ -106,7 +107,6 @@ export const useTests = () => {
           table: 'tests',
         },
         (payload) => {
-          console.log('Tests change:', payload);
           if (payload.eventType === 'INSERT') {
             toast.info('New test available!');
           } else if (payload.eventType === 'UPDATE') {
@@ -152,7 +152,7 @@ export const useStudentTests = (studentUsn?: string) => {
       .eq('student_usn', studentUsn);
 
     if (error) {
-      console.error('Error fetching student tests:', error);
+      logError('fetchStudentTests', error);
     } else {
       setStudentTests((data as StudentTest[]) || []);
     }
@@ -173,8 +173,7 @@ export const useStudentTests = (studentUsn?: string) => {
           schema: 'public',
           table: 'student_tests',
         },
-        (payload) => {
-          console.log('Student tests change:', payload);
+        () => {
           fetchStudentTests();
         }
       )

@@ -184,7 +184,10 @@ export const FloatingChatWidget = () => {
       }
 
     } catch (error) {
-      console.error('Error getting AI response:', error);
+      // Log only in development
+      if (import.meta.env.DEV) {
+        console.error('Error getting AI response:', error);
+      }
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to get response',
