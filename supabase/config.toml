@@ -2,3 +2,6 @@ project_id = "dahcwfsggrdxmaccmjdd"
 
 [functions.ai-chat]
 verify_jwt = true
+
+[functions.predict-performance]
+verify_jwt = true

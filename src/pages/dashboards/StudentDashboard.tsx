@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useStudentMarks } from '@/hooks/useStudentMarks';
 import { RootCauseAnalyzer } from '@/components/analysis/RootCauseAnalyzer';
 import { ProgressDashboard } from '@/components/analysis/ProgressDashboard';
+import { PerformancePredictor } from '@/components/analysis/PerformancePredictor';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,10 +15,10 @@ import {
   Clock,
   Award,
   FileText,
-  MessageSquare,
   Calendar,
   Target,
   BarChart3,
+  Brain,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -148,8 +149,12 @@ const StudentDashboard = () => {
 
         {/* Tabbed Content */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList>
+          <TabsList className="flex-wrap">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="prediction" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              AI Prediction
+            </TabsTrigger>
             <TabsTrigger value="progress" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Progress
@@ -219,6 +224,10 @@ const StudentDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="prediction">
+            <PerformancePredictor />
           </TabsContent>
 
           <TabsContent value="progress">
