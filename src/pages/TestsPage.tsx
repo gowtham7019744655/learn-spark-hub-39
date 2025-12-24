@@ -1,92 +1,77 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTests, useStudentTests } from '@/hooks/useTests';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Navigate } from 'react-router-dom';
-import { Clock, CheckCircle, PlayCircle, FileText, Award } from 'lucide-react';
-
-interface Test {
-  id: number;
-  title: string;
-  course: string;
-  duration: string;
-  questions: number;
-  status: 'available' | 'completed' | 'upcoming';
-  score?: number;
-  dueDate?: string;
-}
-
-const tests: Test[] = [
-  {
-    id: 1,
-    title: 'Calculus Midterm',
-    course: 'Mathematics',
-    duration: '60 min',
-    questions: 25,
-    status: 'completed',
-    score: 88,
-  },
-  {
-    id: 2,
-    title: 'Physics Quiz 3',
-    course: 'Physics',
-    duration: '30 min',
-    questions: 15,
-    status: 'available',
-    dueDate: 'Mar 15, 2024',
-  },
-  {
-    id: 3,
-    title: 'Programming Assignment',
-    course: 'Computer Science',
-    duration: '90 min',
-    questions: 10,
-    status: 'available',
-    dueDate: 'Mar 18, 2024',
-  },
-  {
-    id: 4,
-    title: 'Literature Essay',
-    course: 'English',
-    duration: '45 min',
-    questions: 5,
-    status: 'upcoming',
-    dueDate: 'Mar 25, 2024',
-  },
-  {
-    id: 5,
-    title: 'Chemistry Lab Exam',
-    course: 'Chemistry',
-    duration: '60 min',
-    questions: 20,
-    status: 'completed',
-    score: 92,
-  },
-];
+import { Clock, CheckCircle, PlayCircle, FileText, Award, Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
 
 const TestsPage = () => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, profile } = useAuth();
+  const { tests, loading: testsLoading } = useTests();
+  const { studentTests, loading: studentTestsLoading } = useStudentTests(profile?.usn || undefined);
   const [activeTab, setActiveTab] = useState<'available' | 'completed' | 'upcoming'>('available');
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
-  const filteredTests = tests.filter((test) => test.status === activeTab);
+  const loading = testsLoading || studentTestsLoading;
+
+  // Map student test submissions
+  const studentTestMap = new Map(studentTests.map(st => [st.test_id, st]));
+
+  // Categorize tests
+  const categorizedTests = tests
+    .filter(t => t.status === 'published')
+    .map(test => {
+      const studentTest = studentTestMap.get(test.id);
+      let status: 'available' | 'completed' | 'upcoming' = 'available';
+      
+      if (studentTest?.status === 'completed') {
+        status = 'completed';
+      } else if (test.due_date && new Date(test.due_date) > new Date()) {
+        const daysUntilDue = Math.ceil((new Date(test.due_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        if (daysUntilDue > 7) {
+          status = 'upcoming';
+        }
+      }
+
+      return {
+        ...test,
+        displayStatus: status,
+        score: studentTest?.score || null,
+        studentTestStatus: studentTest?.status || null,
+      };
+    });
+
+  const filteredTests = categorizedTests.filter((test) => test.displayStatus === activeTab);
 
   const stats = {
-    available: tests.filter((t) => t.status === 'available').length,
-    completed: tests.filter((t) => t.status === 'completed').length,
-    avgScore: Math.round(
-      tests
-        .filter((t) => t.status === 'completed' && t.score)
-        .reduce((acc, t) => acc + (t.score || 0), 0) /
-        tests.filter((t) => t.status === 'completed').length
-    ),
+    available: categorizedTests.filter((t) => t.displayStatus === 'available').length,
+    completed: categorizedTests.filter((t) => t.displayStatus === 'completed').length,
+    avgScore: (() => {
+      const completedWithScores = categorizedTests.filter((t) => t.displayStatus === 'completed' && t.score);
+      if (completedWithScores.length === 0) return 0;
+      return Math.round(
+        completedWithScores.reduce((acc, t) => acc + (t.score || 0), 0) / completedWithScores.length
+      );
+    })(),
   };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -166,19 +151,19 @@ const TestsPage = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg">{test.title}</CardTitle>
-                    <CardDescription>{test.course}</CardDescription>
+                    <CardDescription>{test.subjects?.name || 'General'}</CardDescription>
                   </div>
-                  {test.status === 'completed' && test.score && (
+                  {test.displayStatus === 'completed' && test.score !== null && (
                     <Badge
                       variant={test.score >= 80 ? 'default' : 'secondary'}
                     >
                       {test.score}%
                     </Badge>
                   )}
-                  {test.status === 'available' && (
+                  {test.displayStatus === 'available' && (
                     <Badge variant="outline">Ready</Badge>
                   )}
-                  {test.status === 'upcoming' && (
+                  {test.displayStatus === 'upcoming' && (
                     <Badge variant="secondary">Scheduled</Badge>
                   )}
                 </div>
@@ -188,15 +173,15 @@ const TestsPage = () => {
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="h-4 w-4" />
-                      {test.duration}
+                      {test.duration_minutes} min
                     </span>
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <FileText className="h-4 w-4" />
-                      {test.questions} questions
+                      {test.total_questions} questions
                     </span>
                   </div>
 
-                  {test.status === 'completed' && test.score && (
+                  {test.displayStatus === 'completed' && test.score !== null && (
                     <div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Score</span>
@@ -206,18 +191,20 @@ const TestsPage = () => {
                     </div>
                   )}
 
-                  {test.dueDate && test.status !== 'completed' && (
-                    <p className="text-sm text-muted-foreground">Due: {test.dueDate}</p>
+                  {test.due_date && test.displayStatus !== 'completed' && (
+                    <p className="text-sm text-muted-foreground">
+                      Due: {format(new Date(test.due_date), 'MMM dd, yyyy')}
+                    </p>
                   )}
 
                   <Button
                     className="w-full"
-                    variant={test.status === 'completed' ? 'outline' : 'default'}
-                    disabled={test.status === 'upcoming'}
+                    variant={test.displayStatus === 'completed' ? 'outline' : 'default'}
+                    disabled={test.displayStatus === 'upcoming'}
                   >
-                    {test.status === 'available' && 'Start Test'}
-                    {test.status === 'completed' && 'View Results'}
-                    {test.status === 'upcoming' && 'Coming Soon'}
+                    {test.displayStatus === 'available' && 'Start Test'}
+                    {test.displayStatus === 'completed' && 'View Results'}
+                    {test.displayStatus === 'upcoming' && 'Coming Soon'}
                   </Button>
                 </div>
               </CardContent>
@@ -228,7 +215,11 @@ const TestsPage = () => {
         {filteredTests.length === 0 && (
           <Card className="py-12 text-center">
             <CardContent>
-              <p className="text-muted-foreground">No tests found in this category.</p>
+              <p className="text-muted-foreground">
+                {tests.length === 0 
+                  ? 'No tests have been created yet. Check back later!'
+                  : 'No tests found in this category.'}
+              </p>
             </CardContent>
           </Card>
         )}

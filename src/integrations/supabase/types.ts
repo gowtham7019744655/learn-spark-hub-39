@@ -115,6 +115,50 @@ export type Database = {
           },
         ]
       }
+      student_tests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          score: number | null
+          started_at: string | null
+          status: string
+          student_usn: string
+          test_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          student_usn: string
+          test_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          student_usn?: string
+          test_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_tests_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subjects: {
         Row: {
           created_at: string
@@ -141,6 +185,59 @@ export type Database = {
           semester?: number
         }
         Relationships: []
+      }
+      tests: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          duration_minutes: number
+          id: string
+          max_score: number
+          status: string
+          subject_id: string | null
+          title: string
+          total_questions: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          duration_minutes?: number
+          id?: string
+          max_score?: number
+          status?: string
+          subject_id?: string | null
+          title: string
+          total_questions?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          duration_minutes?: number
+          id?: string
+          max_score?: number
+          status?: string
+          subject_id?: string | null
+          title?: string
+          total_questions?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tests_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
