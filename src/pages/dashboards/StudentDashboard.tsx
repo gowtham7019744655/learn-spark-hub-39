@@ -1,6 +1,7 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
-import { useStudentMarks } from '@/hooks/useStudentMarks';
+import { useRealtimeStudentMarks } from '@/hooks/useRealtimeStudentMarks';
+import { useRealtimeAssignments } from '@/hooks/useRealtimeAssignments';
 import { RootCauseAnalyzer } from '@/components/analysis/RootCauseAnalyzer';
 import { ProgressDashboard } from '@/components/analysis/ProgressDashboard';
 import { PerformancePredictor } from '@/components/analysis/PerformancePredictor';
@@ -39,16 +40,25 @@ const performanceData = [
   { month: 'Jun', score: 88 },
 ];
 
-const upcomingAssignments = [
-  { title: 'Calculus Problem Set', course: 'Mathematics', due: '2 days' },
-  { title: 'Physics Lab Report', course: 'Physics', due: '5 days' },
-  { title: 'Essay Draft', course: 'English', due: '1 week' },
-];
+// Helper function to calculate relative time
+const getRelativeTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) return 'Overdue';
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return '1 day';
+  if (diffDays < 7) return `${diffDays} days`;
+  if (diffDays < 14) return '1 week';
+  return `${Math.ceil(diffDays / 7)} weeks`;
+};
 
 const StudentDashboard = () => {
   const { profile, role, isAuthenticated, user } = useAuth();
-  const { marks, loading } = useStudentMarks(profile?.usn || undefined);
-
+  const { marks, loading } = useRealtimeStudentMarks(profile?.usn || undefined);
+  const { assignments } = useRealtimeAssignments();
   if (!isAuthenticated || role !== 'student') {
     return <Navigate to="/login/student" replace />;
   }
@@ -209,18 +219,22 @@ const StudentDashboard = () => {
                   <CardDescription>Assignments due soon</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {upcomingAssignments.map((assignment, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start justify-between border-b border-border pb-3 last:border-0 last:pb-0"
-                    >
-                      <div>
-                        <p className="font-medium text-foreground">{assignment.title}</p>
-                        <p className="text-sm text-muted-foreground">{assignment.course}</p>
+                  {assignments.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">No assignments yet</p>
+                  ) : (
+                    assignments.slice(0, 5).map((assignment) => (
+                      <div
+                        key={assignment.id}
+                        className="flex items-start justify-between border-b border-border pb-3 last:border-0 last:pb-0"
+                      >
+                        <div>
+                          <p className="font-medium text-foreground">{assignment.title}</p>
+                          <p className="text-sm text-muted-foreground">{assignment.course_code}</p>
+                        </div>
+                        <Badge variant="outline">{getRelativeTime(assignment.due_date)}</Badge>
                       </div>
-                      <Badge variant="outline">{assignment.due}</Badge>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </CardContent>
               </Card>
             </div>
