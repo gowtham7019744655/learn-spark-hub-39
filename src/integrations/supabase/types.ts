@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_children: {
+        Row: {
+          approved: boolean
+          created_at: string
+          id: string
+          parent_user_id: string
+          relationship: string
+          student_usn: string
+          updated_at: string
+        }
+        Insert: {
+          approved?: boolean
+          created_at?: string
+          id?: string
+          parent_user_id: string
+          relationship: string
+          student_usn: string
+          updated_at?: string
+        }
+        Update: {
+          approved?: boolean
+          created_at?: string
+          id?: string
+          parent_user_id?: string
+          relationship?: string
+          student_usn?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -277,6 +307,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      parent_can_view_student: {
+        Args: { _parent_user_id: string; _student_usn: string }
         Returns: boolean
       }
     }
