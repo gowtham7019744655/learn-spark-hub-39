@@ -1,9 +1,11 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudentMarks } from '@/hooks/useStudentMarks';
+import { RootCauseAnalyzer } from '@/components/analysis/RootCauseAnalyzer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link, Navigate } from 'react-router-dom';
 import {
   BookOpen,
@@ -13,6 +15,7 @@ import {
   FileText,
   MessageSquare,
   Calendar,
+  Target,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -141,64 +144,81 @@ const StudentDashboard = () => {
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Performance Chart */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Performance Trend</CardTitle>
-              <CardDescription>Your average scores over the past months</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={performanceData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="month" className="text-muted-foreground" />
-                    <YAxis className="text-muted-foreground" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: 'var(--radius)',
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="score"
-                      stroke="hsl(var(--primary))"
-                      fill="hsl(var(--primary) / 0.2)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Tabbed Content */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analysis" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Root-Cause Analysis
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Upcoming Assignments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Upcoming
-              </CardTitle>
-              <CardDescription>Assignments due soon</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {upcomingAssignments.map((assignment, index) => (
-                <div
-                  key={index}
-                  className="flex items-start justify-between border-b border-border pb-3 last:border-0 last:pb-0"
-                >
-                  <div>
-                    <p className="font-medium text-foreground">{assignment.title}</p>
-                    <p className="text-sm text-muted-foreground">{assignment.course}</p>
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-3">
+              {/* Performance Chart */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle>Performance Trend</CardTitle>
+                  <CardDescription>Your average scores over the past months</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={performanceData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                        <XAxis dataKey="month" className="text-muted-foreground" />
+                        <YAxis className="text-muted-foreground" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: 'var(--radius)',
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="score"
+                          stroke="hsl(var(--primary))"
+                          fill="hsl(var(--primary) / 0.2)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
-                  <Badge variant="outline">{assignment.due}</Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
+
+              {/* Upcoming Assignments */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Upcoming
+                  </CardTitle>
+                  <CardDescription>Assignments due soon</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {upcomingAssignments.map((assignment, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start justify-between border-b border-border pb-3 last:border-0 last:pb-0"
+                    >
+                      <div>
+                        <p className="font-medium text-foreground">{assignment.title}</p>
+                        <p className="text-sm text-muted-foreground">{assignment.course}</p>
+                      </div>
+                      <Badge variant="outline">{assignment.due}</Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analysis">
+            <RootCauseAnalyzer marks={marks} loading={loading} />
+          </TabsContent>
+        </Tabs>
 
         {/* Subject Marks Table */}
         <Card className="mt-6">
