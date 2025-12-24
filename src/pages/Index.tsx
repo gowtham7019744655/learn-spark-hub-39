@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Users, BookOpen, MessageSquare } from 'lucide-react';
+import { GraduationCap, Users, BookOpen } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 
 const Index = () => {
@@ -29,13 +29,6 @@ const Index = () => {
       icon: Users,
       link: '/login/parent',
       color: 'bg-accent-foreground/10 text-accent-foreground',
-    },
-    {
-      title: 'Chatbot Assistance',
-      description: 'Get instant help with AI-powered academic support and guidance',
-      icon: MessageSquare,
-      link: '/chatbot',
-      color: 'bg-primary/10 text-primary',
     },
   ];
 
@@ -80,9 +73,7 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <Link to={option.link}>
-                    <Button className="w-full">
-                      {option.title === 'Chatbot Assistance' ? 'Open Chatbot' : 'Continue'}
-                    </Button>
+                    <Button className="w-full">Continue</Button>
                   </Link>
                 </CardContent>
               </Card>
