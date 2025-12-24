@@ -305,12 +305,6 @@ const StudentDashboard = () => {
               Take a Test
             </Button>
           </Link>
-          <Link to="/chatbot">
-            <Button variant="outline">
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Ask AI Assistant
-            </Button>
-          </Link>
         </div>
       </div>
     </MainLayout>

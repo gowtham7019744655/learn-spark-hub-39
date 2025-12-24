@@ -12,7 +12,6 @@ import ParentLogin from "./pages/login/ParentLogin";
 import StudentDashboard from "./pages/dashboards/StudentDashboard";
 import LecturerDashboard from "./pages/dashboards/LecturerDashboard";
 import ParentDashboard from "./pages/dashboards/ParentDashboard";
-import ChatbotPage from "./pages/ChatbotPage";
 import TestsPage from "./pages/TestsPage";
 import AdminPage from "./pages/AdminPage";
 import ManageSubjectsPage from "./pages/ManageSubjectsPage";
@@ -34,7 +33,6 @@ const App = () => (
             <Route path="/student/dashboard" element={<StudentDashboard />} />
             <Route path="/lecturer/dashboard" element={<LecturerDashboard />} />
             <Route path="/parent/dashboard" element={<ParentDashboard />} />
-            <Route path="/chatbot" element={<ChatbotPage />} />
             <Route path="/tests" element={<TestsPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/manage-subjects" element={<ManageSubjectsPage />} />

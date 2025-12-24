@@ -44,9 +44,6 @@ export const Navbar = () => {
                 <Link to={getDashboardLink()}>
                   <Button variant="ghost">Dashboard</Button>
                 </Link>
-                <Link to="/chatbot">
-                  <Button variant="ghost">AI Assistant</Button>
-                </Link>
                 <Link to="/tests">
                   <Button variant="ghost">Tests</Button>
                 </Link>
@@ -100,11 +97,6 @@ export const Navbar = () => {
                   <Link to={getDashboardLink()} onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">
                       Dashboard
-                    </Button>
-                  </Link>
-                  <Link to="/chatbot" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      AI Assistant
                     </Button>
                   </Link>
                   <Link to="/tests" onClick={() => setMobileMenuOpen(false)}>
