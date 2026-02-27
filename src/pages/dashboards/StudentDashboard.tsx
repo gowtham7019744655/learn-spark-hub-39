@@ -5,6 +5,7 @@ import { useRealtimeAssignments } from '@/hooks/useRealtimeAssignments';
 import { RootCauseAnalyzer } from '@/components/analysis/RootCauseAnalyzer';
 import { ProgressDashboard } from '@/components/analysis/ProgressDashboard';
 import { PerformancePredictor } from '@/components/analysis/PerformancePredictor';
+import { MLAnalysisDashboard } from '@/components/analysis/MLAnalysisDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ import {
   Target,
   BarChart3,
   Brain,
+  Activity,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -173,6 +175,10 @@ const StudentDashboard = () => {
               <Target className="h-4 w-4" />
               Root-Cause
             </TabsTrigger>
+            <TabsTrigger value="ml-analysis" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              ML Models
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -250,6 +256,10 @@ const StudentDashboard = () => {
 
           <TabsContent value="analysis">
             <RootCauseAnalyzer marks={marks} loading={loading} />
+          </TabsContent>
+
+          <TabsContent value="ml-analysis">
+            <MLAnalysisDashboard />
           </TabsContent>
         </Tabs>
 
