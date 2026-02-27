@@ -22,6 +22,7 @@ import {
   BarChart3,
   Brain,
   Activity,
+  Loader2,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -82,9 +83,20 @@ const getRelativeTime = (dateStr: string) => {
 };
 
 const StudentDashboard = () => {
-  const { profile, role, isAuthenticated, user } = useAuth();
+  const { profile, role, isAuthenticated, user, loading: authLoading } = useAuth();
   const { marks, loading } = useRealtimeStudentMarks(profile?.usn || undefined);
   const { assignments } = useRealtimeAssignments();
+
+  if (authLoading) {
+    return (
+      <MainLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
+
   if (!isAuthenticated || role !== 'student') {
     return <Navigate to="/login/student" replace />;
   }

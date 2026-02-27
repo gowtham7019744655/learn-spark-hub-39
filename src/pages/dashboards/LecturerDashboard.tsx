@@ -76,7 +76,7 @@ const courses = [
 ];
 
 const LecturerDashboard = () => {
-  const { profile, role, isAuthenticated, user } = useAuth();
+  const { profile, role, isAuthenticated, user, loading: authLoading } = useAuth();
   const { assignments, loading: assignmentsLoading, addAssignment, deleteAssignment } = useRealtimeAssignments();
   const { tests, loading: testsLoading, addTest, deleteTest, updateTest } = useTests();
   const { subjects } = useSubjects();
@@ -130,6 +130,16 @@ const LecturerDashboard = () => {
     };
     if (isAuthenticated && role === 'lecturer') fetchAllMarks();
   }, [isAuthenticated, role]);
+
+  if (authLoading) {
+    return (
+      <MainLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (!isAuthenticated || role !== 'lecturer') {
     return <Navigate to="/login/lecturer" replace />;

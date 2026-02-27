@@ -13,6 +13,7 @@ import {
   MessageSquare,
   FileText,
   Download,
+  Loader2,
 } from 'lucide-react';
 import {
   LineChart,
@@ -59,7 +60,17 @@ const childInfo = {
 };
 
 const ParentDashboard = () => {
-  const { profile, role, isAuthenticated } = useAuth();
+  const { profile, role, isAuthenticated, loading: authLoading } = useAuth();
+
+  if (authLoading) {
+    return (
+      <MainLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (!isAuthenticated || role !== 'parent') {
     return <Navigate to="/login/parent" replace />;
