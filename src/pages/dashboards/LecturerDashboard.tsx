@@ -1,9 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeAssignments } from '@/hooks/useRealtimeAssignments';
 import { useTests } from '@/hooks/useTests';
 import { useSubjects } from '@/hooks/useSubjects';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -90,9 +99,56 @@ const LecturerDashboard = () => {
     due_date: '',
   });
 
+  // Fetch all student marks for the lecturer view
+  interface AllStudentMark {
+    id: string;
+    student_usn: string;
+    subject_id: string;
+    internal_marks: number;
+    external_marks: number;
+    grade: string | null;
+    subjects?: { id: string; name: string; max_internal: number; max_external: number } | null;
+  }
+
+  const [allStudentMarks, setAllStudentMarks] = useState<AllStudentMark[]>([]);
+  const [marksLoading, setMarksLoading] = useState(false);
+
+  const gradeToGradePoint = (grade: string | null): number => {
+    const map: Record<string, number> = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'P': 4, 'F': 0 };
+    return map[grade || ''] ?? 0;
+  };
+
+  useEffect(() => {
+    const fetchAllMarks = async () => {
+      setMarksLoading(true);
+      const { data, error } = await supabase
+        .from('student_marks')
+        .select('*, subjects(id, name, max_internal, max_external)')
+        .order('student_usn');
+      if (!error && data) setAllStudentMarks(data);
+      setMarksLoading(false);
+    };
+    if (isAuthenticated && role === 'lecturer') fetchAllMarks();
+  }, [isAuthenticated, role]);
+
   if (!isAuthenticated || role !== 'lecturer') {
     return <Navigate to="/login/lecturer" replace />;
   }
+
+  // Group marks by student USN for the table
+  const studentGroups = allStudentMarks.reduce<Record<string, AllStudentMark[]>>((acc, mark) => {
+    if (!acc[mark.student_usn]) acc[mark.student_usn] = [];
+    acc[mark.student_usn].push(mark);
+    return acc;
+  }, {});
+
+  const studentSummaries = Object.entries(studentGroups).map(([usn, marks]) => {
+    const totalGP = marks.reduce((sum, m) => sum + gradeToGradePoint(m.grade), 0);
+    const sgpa = marks.length > 0 ? (totalGP / marks.length).toFixed(2) : '0.00';
+    const totalInternal = marks.reduce((sum, m) => sum + m.internal_marks, 0);
+    const totalExternal = marks.reduce((sum, m) => sum + m.external_marks, 0);
+    return { usn, marks, sgpa: parseFloat(sgpa), totalInternal, totalExternal, subjectCount: marks.length };
+  }).sort((a, b) => b.sgpa - a.sgpa);
 
   const handleCreateAssignment = async () => {
     if (!newAssignment.title || !newAssignment.course_code || !newAssignment.due_date) {
@@ -400,6 +456,7 @@ const LecturerDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="student-marks">Student Marks</TabsTrigger>
             <TabsTrigger value="assignments">Assignments</TabsTrigger>
             <TabsTrigger value="tests">Tests</TabsTrigger>
           </TabsList>
@@ -500,6 +557,69 @@ const LecturerDashboard = () => {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="student-marks">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  All Student Marks
+                </CardTitle>
+                <CardDescription>View marks and SGPA for all students ({studentSummaries.length} students found)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {marksLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : studentSummaries.length === 0 ? (
+                  <p className="text-muted-foreground py-8 text-center">No student marks found.</p>
+                ) : (
+                  <div className="space-y-6">
+                    {studentSummaries.map(({ usn, marks, sgpa, subjectCount }) => (
+                      <div key={usn} className="rounded-lg border border-border p-4">
+                        <div className="mb-3 flex items-center justify-between">
+                          <div>
+                            <p className="text-lg font-semibold text-foreground">{usn}</p>
+                            <p className="text-sm text-muted-foreground">{subjectCount} subjects</p>
+                          </div>
+                          <Badge variant={sgpa >= 8 ? 'default' : sgpa >= 5 ? 'secondary' : 'destructive'}>
+                            SGPA: {sgpa.toFixed(2)}
+                          </Badge>
+                        </div>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Subject</TableHead>
+                              <TableHead>Internal</TableHead>
+                              <TableHead>External</TableHead>
+                              <TableHead>Total</TableHead>
+                              <TableHead>Grade</TableHead>
+                              <TableHead>GP</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {marks.map((mark) => (
+                              <TableRow key={mark.id}>
+                                <TableCell className="font-medium">{mark.subjects?.name || 'Unknown'}</TableCell>
+                                <TableCell>{mark.internal_marks}/{mark.subjects?.max_internal || 50}</TableCell>
+                                <TableCell>{mark.external_marks}/{mark.subjects?.max_external || 100}</TableCell>
+                                <TableCell>{mark.internal_marks + mark.external_marks}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline">{mark.grade || 'N/A'}</Badge>
+                                </TableCell>
+                                <TableCell>{gradeToGradePoint(mark.grade)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
