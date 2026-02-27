@@ -42,6 +42,30 @@ const performanceData = [
   { month: 'Jun', score: 88 },
 ];
 
+// Indian grading system: Grade → Grade Point (10-point scale)
+const gradeToGradePoint: Record<string, number> = {
+  'O': 10,
+  'A+': 9,
+  'A': 8,
+  'B+': 7,
+  'B': 6,
+  'C': 5,
+  'P': 4,
+  'F': 0,
+  'Ab': 0,
+};
+
+// Calculate SGPA from marks (10-point scale, Indian standard)
+const calculateSGPA = (marksData: any[]) => {
+  if (marksData.length === 0) return 0;
+  const totalCredits = marksData.length; // Each subject = 1 credit unit for simplicity
+  const totalGradePoints = marksData.reduce((acc, m) => {
+    const gp = gradeToGradePoint[m.grade || ''] ?? 0;
+    return acc + gp;
+  }, 0);
+  return totalCredits > 0 ? Number((totalGradePoints / totalCredits).toFixed(2)) : 0;
+};
+
 // Helper function to calculate relative time
 const getRelativeTime = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -119,8 +143,8 @@ const StudentDashboard = () => {
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">3.8</p>
-                <p className="text-sm text-muted-foreground">Current GPA</p>
+                <p className="text-2xl font-bold text-foreground">{calculateSGPA(marks)}</p>
+                <p className="text-sm text-muted-foreground">SGPA (10-point)</p>
               </div>
             </CardContent>
           </Card>
@@ -284,6 +308,7 @@ const StudentDashboard = () => {
                       <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">External</th>
                       <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Total</th>
                       <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Grade</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Grade Point</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -300,16 +325,19 @@ const StudentDashboard = () => {
                           {mark.internal_marks + mark.external_marks}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <Badge variant={mark.grade?.startsWith('A') ? 'default' : 'secondary'}>
+                          <Badge variant={mark.grade?.startsWith('A') || mark.grade === 'O' ? 'default' : 'secondary'}>
                             {mark.grade || '-'}
                           </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-center font-semibold text-foreground">
+                          {gradeToGradePoint[mark.grade || ''] ?? '-'}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr className="bg-muted/50">
-                      <td className="px-4 py-3 font-semibold text-foreground">Total / Percentage</td>
+                      <td className="px-4 py-3 font-semibold text-foreground">Total / SGPA</td>
                       <td className="px-4 py-3 text-center font-semibold text-foreground">
                         {totalInternal}
                       </td>
@@ -321,6 +349,9 @@ const StudentDashboard = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <Badge>{avgPercentage}%</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Badge variant="default">{calculateSGPA(marks)}</Badge>
                       </td>
                     </tr>
                   </tfoot>
