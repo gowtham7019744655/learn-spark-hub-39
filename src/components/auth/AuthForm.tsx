@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { lovable } from '@/integrations/lovable/index';
 import { Separator } from '@/components/ui/separator';
@@ -64,8 +64,15 @@ export const AuthForm = ({
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [signupForm, setSignupForm] = useState({ email: '', password: '', confirmPassword: '', fullName: '', usn: '' });
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, isAuthenticated, role: userRole } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated (e.g. after Google OAuth return)
+  useEffect(() => {
+    if (isAuthenticated && userRole) {
+      navigate(dashboardPath, { replace: true });
+    }
+  }, [isAuthenticated, userRole, dashboardPath, navigate]);
 
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
@@ -270,15 +277,19 @@ export const AuthForm = ({
               onClick={async () => {
                 setLoading(true);
                 try {
-                  const { error } = await lovable.auth.signInWithOAuth("google", {
+                  const result = await lovable.auth.signInWithOAuth("google", {
                     redirect_uri: window.location.origin,
                   });
-                  if (error) {
+                  // If redirected, the page will navigate away — don't show error
+                  if (result.redirected) return;
+                  if (result.error) {
+                    console.error('Google OAuth error:', result.error);
                     toast.error('Google sign-in failed. Please try again.');
+                    setLoading(false);
                   }
-                } catch {
+                } catch (err) {
+                  console.error('Google OAuth catch:', err);
                   toast.error('Google sign-in failed. Please try again.');
-                } finally {
                   setLoading(false);
                 }
               }}

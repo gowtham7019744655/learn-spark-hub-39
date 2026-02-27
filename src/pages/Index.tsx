@@ -1,10 +1,25 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap, Users, BookOpen } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
+  const { isAuthenticated, role, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated && role) {
+      const dashboards: Record<string, string> = {
+        student: '/student/dashboard',
+        lecturer: '/lecturer/dashboard',
+        parent: '/parent/dashboard',
+      };
+      if (dashboards[role]) navigate(dashboards[role], { replace: true });
+    }
+  }, [isAuthenticated, role, loading, navigate]);
   // Admin flag - in production this would come from auth context
   const isAdmin = true;
 
