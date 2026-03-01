@@ -74,26 +74,18 @@ export const FloatingChatWidget = () => {
     try {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       
-      if (!currentSession?.access_token) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: prev.length + 1,
-            text: "Please sign in first to use the AI assistant. I'll be here to help once you're logged in!",
-            sender: 'bot' as const,
-            timestamp: new Date(),
-          },
-        ]);
-        setIsLoading(false);
-        return;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      };
+      
+      if (currentSession?.access_token) {
+        headers['Authorization'] = `Bearer ${currentSession.access_token}`;
       }
 
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentSession.access_token}`,
-        },
+        headers,
         body: JSON.stringify({ messages: conversationHistory }),
       });
 
