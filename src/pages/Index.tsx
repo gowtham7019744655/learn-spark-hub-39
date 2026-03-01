@@ -38,13 +38,6 @@ const Index = () => {
       link: '/login/lecturer',
       color: 'bg-secondary/10 text-secondary',
     },
-    {
-      title: 'Parent Login',
-      description: "Stay updated on your child's progress and communicate with teachers",
-      icon: Users,
-      link: '/login/parent',
-      color: 'bg-accent-foreground/10 text-accent-foreground',
-    },
   ];
 
   return (
