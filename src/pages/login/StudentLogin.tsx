@@ -9,7 +9,7 @@ const StudentLogin = () => (
     icon={GraduationCap}
     iconClassName="bg-primary/10"
     dashboardPath="/student/dashboard"
-    emailPlaceholder="student@school.edu"
+    emailPlaceholder="hiteshbalaji24csds@rnsit.ac.in"
     namePlaceholder="John Doe"
     showUsn
   />
