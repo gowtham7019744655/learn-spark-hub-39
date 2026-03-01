@@ -1,10 +1,10 @@
 project_id = "dahcwfsggrdxmaccmjdd"
 
 [functions.ai-chat]
-verify_jwt = true
+verify_jwt = false
 
 [functions.predict-performance]
-verify_jwt = true
+verify_jwt = false
 
 [functions.ml-analysis]
-verify_jwt = true
+verify_jwt = false
