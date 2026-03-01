@@ -98,6 +98,10 @@ export const FloatingChatWidget = () => {
       });
 
       if (!resp.ok) {
+        if (resp.status === 401) {
+          await supabase.auth.signOut();
+          throw new Error('Session expired. Please sign in again.');
+        }
         if (resp.status === 429) {
           throw new Error('Rate limit exceeded. Please try again later.');
         }

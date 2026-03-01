@@ -12,37 +12,31 @@ serve(async (req) => {
   }
 
   try {
-    // Verify JWT token
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      console.log("Request rejected: No authorization header");
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let userId: string | null = null;
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '');
+
+      const supabaseAuth = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        {
+          global: { headers: { Authorization: authHeader } },
+          auth: { persistSession: false },
+        }
+      );
+
+      const { data, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+
+      if (!claimsError && data?.claims?.sub) {
+        userId = data.claims.sub as string;
+      } else {
+        console.log('Proceeding as guest: invalid token');
+      }
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Create Supabase client with service role for admin operations
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
-    // Verify the user's JWT token
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (authError || !user) {
-      console.log("Request rejected: Invalid token");
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    console.log("Processing AI chat request for authenticated user");
+    console.log(`Processing AI chat request (${userId ? 'authenticated' : 'guest'})`);
 
     const { messages } = await req.json();
     
