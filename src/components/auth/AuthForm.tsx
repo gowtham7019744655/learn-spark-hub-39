@@ -65,7 +65,6 @@ export const AuthForm = ({
   const { signIn, signUp, isAuthenticated, role: userRole } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already authenticated (e.g. after Google OAuth return)
   useEffect(() => {
     if (isAuthenticated && userRole) {
       navigate(dashboardPath, { replace: true });
@@ -89,8 +88,8 @@ export const AuthForm = ({
     try {
       const { error } = await signIn(loginForm.email, loginForm.password);
       if (error) {
-        toast.error(error.message === 'Invalid login credentials' 
-          ? 'Incorrect email or password. Please try again.' 
+        toast.error(error.message === 'Invalid login credentials'
+          ? 'Incorrect email or password. Please try again.'
           : error.message);
       } else {
         toast.success('Welcome back!');
@@ -136,142 +135,153 @@ export const AuthForm = ({
   return (
     <MainLayout>
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-md animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-          <CardHeader className="text-center">
-            <div className={`mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full ${iconClassName}`}>
-              <Icon className="h-7 w-7 text-primary" />
-            </div>
-            <CardTitle className="text-2xl">{title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login" className="animate-in fade-in-0 duration-300">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder={emailPlaceholder}
-                      value={loginForm.email}
-                      onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                      required
-                      autoComplete="email"
-                      disabled={loading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={loginForm.password}
-                      onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                      required
-                      autoComplete="current-password"
-                      disabled={loading}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...</> : 'Sign In'}
-                  </Button>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="signup" className="animate-in fade-in-0 duration-300">
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder={namePlaceholder}
-                      value={signupForm.fullName}
-                      onChange={(e) => setSignupForm(prev => ({ ...prev, fullName: e.target.value }))}
-                      required
-                      autoComplete="name"
-                      disabled={loading}
-                    />
-                  </div>
-                  {showUsn && (
+        <div className="relative w-full max-w-md">
+          {/* Background glow */}
+          <div className="absolute -inset-4 -z-10 rounded-2xl bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 blur-xl" />
+          
+          <Card className="border-border/50 shadow-xl shadow-primary/5 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+            <CardHeader className="pb-4 text-center">
+              <div className={`mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl ${iconClassName} transition-transform hover:scale-105`}>
+                <Icon className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-bold">{title}</CardTitle>
+              <CardDescription className="text-sm">{description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                <TabsList className="mb-6 grid w-full grid-cols-2">
+                  <TabsTrigger value="login" className="font-semibold">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup" className="font-semibold">Sign Up</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="login" className="animate-in fade-in-0 duration-300">
+                  <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signup-usn">USN (University Serial Number)</Label>
+                      <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
                       <Input
-                        id="signup-usn"
-                        type="text"
-                        placeholder="1XX21CS001"
-                        value={signupForm.usn}
-                        onChange={(e) => setSignupForm(prev => ({ ...prev, usn: e.target.value.toUpperCase() }))}
+                        id="login-email"
+                        type="email"
+                        placeholder={emailPlaceholder}
+                        value={loginForm.email}
+                        onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
                         required
+                        autoComplete="email"
                         disabled={loading}
+                        className="h-11"
                       />
                     </div>
-                  )}
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder={emailPlaceholder}
-                      value={signupForm.email}
-                      onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
-                      required
-                      autoComplete="email"
-                      disabled={loading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={signupForm.password}
-                      onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
-                      required
-                      autoComplete="new-password"
-                      disabled={loading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirm Password</Label>
-                    <Input
-                      id="signup-confirm"
-                      type="password"
-                      placeholder="••••••••"
-                      value={signupForm.confirmPassword}
-                      onChange={(e) => setSignupForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      required
-                      autoComplete="new-password"
-                      disabled={loading}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</> : 'Create Account'}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+                    <div className="space-y-2">
+                      <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
+                      <Input
+                        id="login-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={loginForm.password}
+                        onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                        required
+                        autoComplete="current-password"
+                        disabled={loading}
+                        className="h-11"
+                      />
+                    </div>
+                    <Button type="submit" className="h-11 w-full text-base font-semibold shadow-md shadow-primary/20" disabled={loading}>
+                      {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...</> : 'Sign In'}
+                    </Button>
+                  </form>
+                </TabsContent>
 
-            
-            <div className="mt-6 text-center">
-              <Link
-                to="/"
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+                <TabsContent value="signup" className="animate-in fade-in-0 duration-300">
+                  <form onSubmit={handleSignup} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name" className="text-sm font-medium">Full Name</Label>
+                      <Input
+                        id="signup-name"
+                        type="text"
+                        placeholder={namePlaceholder}
+                        value={signupForm.fullName}
+                        onChange={(e) => setSignupForm(prev => ({ ...prev, fullName: e.target.value }))}
+                        required
+                        autoComplete="name"
+                        disabled={loading}
+                        className="h-11"
+                      />
+                    </div>
+                    {showUsn && (
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-usn" className="text-sm font-medium">USN (University Serial Number)</Label>
+                        <Input
+                          id="signup-usn"
+                          type="text"
+                          placeholder="1XX21CS001"
+                          value={signupForm.usn}
+                          onChange={(e) => setSignupForm(prev => ({ ...prev, usn: e.target.value.toUpperCase() }))}
+                          required
+                          disabled={loading}
+                          className="h-11"
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email" className="text-sm font-medium">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder={emailPlaceholder}
+                        value={signupForm.email}
+                        onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
+                        required
+                        autoComplete="email"
+                        disabled={loading}
+                        className="h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={signupForm.password}
+                        onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
+                        required
+                        autoComplete="new-password"
+                        disabled={loading}
+                        className="h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-confirm" className="text-sm font-medium">Confirm Password</Label>
+                      <Input
+                        id="signup-confirm"
+                        type="password"
+                        placeholder="••••••••"
+                        value={signupForm.confirmPassword}
+                        onChange={(e) => setSignupForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        required
+                        autoComplete="new-password"
+                        disabled={loading}
+                        className="h-11"
+                      />
+                    </div>
+                    <Button type="submit" className="h-11 w-full text-base font-semibold shadow-md shadow-primary/20" disabled={loading}>
+                      {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</> : 'Create Account'}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+
+              <div className="mt-8 text-center">
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Home
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </MainLayout>
   );
