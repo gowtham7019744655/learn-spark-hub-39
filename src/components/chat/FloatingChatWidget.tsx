@@ -44,8 +44,7 @@ export const FloatingChatWidget = () => {
     }
   }, [messages]);
 
-  // Don't render if not authenticated
-  if (!isAuthenticated) return null;
+  // Chatbot is available on all pages including login
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -76,7 +75,17 @@ export const FloatingChatWidget = () => {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       
       if (!currentSession?.access_token) {
-        throw new Error('Not authenticated');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: prev.length + 1,
+            text: "Please sign in first to use the AI assistant. I'll be here to help once you're logged in!",
+            sender: 'bot' as const,
+            timestamp: new Date(),
+          },
+        ]);
+        setIsLoading(false);
+        return;
       }
 
       const resp = await fetch(CHAT_URL, {
