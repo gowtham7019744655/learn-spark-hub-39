@@ -241,4 +241,107 @@ export const drawStackedBar = (
   doc.setTextColor(0, 0, 0);
 };
 
+/**
+ * Draw a line chart directly onto a jsPDF document.
+ */
+export const drawLineChart = (
+  doc: jsPDF,
+  data: { label: string; value: number }[],
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  title?: string,
+  lineColor?: [number, number, number],
+) => {
+  if (data.length === 0) return;
+
+  const color = lineColor || DEFAULT_COLORS[0];
+  const chartPadding = { top: title ? 18 : 6, bottom: 28, left: 30, right: 10 };
+  const chartX = x + chartPadding.left;
+  const chartY = y + chartPadding.top;
+  const chartW = width - chartPadding.left - chartPadding.right;
+  const chartH = height - chartPadding.top - chartPadding.bottom;
+
+  // Title
+  if (title) {
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 30, 30);
+    doc.text(title, x + width / 2, y + 12, { align: 'center' });
+  }
+
+  const maxVal = Math.max(...data.map((d) => d.value), 1);
+  const gridLines = 5;
+
+  // Grid lines & Y-axis labels
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.3);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120, 120, 120);
+
+  for (let i = 0; i <= gridLines; i++) {
+    const lineY = chartY + chartH - (i / gridLines) * chartH;
+    doc.line(chartX, lineY, chartX + chartW, lineY);
+    const label = Math.round((i / gridLines) * maxVal).toString();
+    doc.text(label, chartX - 3, lineY + 1.5, { align: 'right' });
+  }
+
+  // Calculate point positions
+  const points = data.map((item, i) => ({
+    x: chartX + (i / Math.max(data.length - 1, 1)) * chartW,
+    y: chartY + chartH - (item.value / maxVal) * chartH,
+    label: item.label,
+    value: item.value,
+  }));
+
+  // Fill area under line
+  doc.setFillColor(color[0], color[1], color[2]);
+  doc.setGState(doc.GState({ opacity: 0.08 }));
+  const areaPath = [
+    { x: points[0].x, y: chartY + chartH },
+    ...points.map((p) => ({ x: p.x, y: p.y })),
+    { x: points[points.length - 1].x, y: chartY + chartH },
+  ];
+  for (let i = 0; i < areaPath.length - 2; i++) {
+    doc.triangle(areaPath[0].x, areaPath[0].y, areaPath[i + 1].x, areaPath[i + 1].y, areaPath[i + 2].x, areaPath[i + 2].y, 'F');
+  }
+  doc.setGState(doc.GState({ opacity: 1 }));
+
+  // Draw line segments
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.setLineWidth(1.2);
+  for (let i = 0; i < points.length - 1; i++) {
+    doc.line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+  }
+
+  // Draw data points
+  points.forEach((p) => {
+    doc.setFillColor(255, 255, 255);
+    doc.circle(p.x, p.y, 2, 'F');
+    doc.setFillColor(color[0], color[1], color[2]);
+    doc.circle(p.x, p.y, 1.3, 'F');
+  });
+
+  // Value labels above points
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(color[0], color[1], color[2]);
+  points.forEach((p) => {
+    doc.text(p.value.toString(), p.x, p.y - 4, { align: 'center' });
+  });
+
+  // X-axis labels
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  points.forEach((p) => {
+    const labelText = p.label.length > 10 ? p.label.substring(0, 9) + '…' : p.label;
+    doc.text(labelText, p.x, chartY + chartH + 8, { align: 'center' });
+  });
+
+  doc.setTextColor(0, 0, 0);
+};
+
 export { DEFAULT_COLORS };
