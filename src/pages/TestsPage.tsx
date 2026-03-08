@@ -18,7 +18,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Navigate } from 'react-router-dom';
-import { Clock, CheckCircle, PlayCircle, FileText, Award, Loader2, ArrowLeft, PlusCircle, Trash2, ListPlus, ClipboardCheck } from 'lucide-react';
+import { Clock, CheckCircle, PlayCircle, FileText, Award, Loader2, ArrowLeft, PlusCircle, Trash2, ListPlus, ClipboardCheck, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { TestTaking } from '@/components/tests/TestTaking';
 import { TestResults } from '@/components/tests/TestResults';
