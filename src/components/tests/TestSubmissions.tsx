@@ -82,7 +82,49 @@ export const TestSubmissions = ({ testId, testTitle, maxScore, onBack }: TestSub
   const highestScore = submissions.length > 0 ? Math.max(...submissions.filter(s => s.score !== null).map(s => s.score!), 0) : 0;
   const lowestScore = completedCount > 0 ? Math.min(...submissions.filter(s => s.status === 'completed' && s.score !== null).map(s => s.score!)) : 0;
 
-  if (loading) {
+  const exportPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const now = format(new Date(), 'MMM dd, yyyy HH:mm');
+
+      // Header
+      doc.setFontSize(18);
+      doc.text(testTitle, 14, 20);
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Submissions Report • Generated ${now}`, 14, 28);
+      doc.text(`Max Score: ${maxScore}`, 14, 34);
+
+      // Stats summary
+      doc.setFontSize(11);
+      doc.setTextColor(0);
+      doc.text(`Total Attempts: ${submissions.length}  |  Completed: ${completedCount}  |  Avg: ${avgScore}%  |  High: ${highestScore}%  |  Low: ${lowestScore}%`, 14, 44);
+
+      // Table
+      autoTable(doc, {
+        startY: 52,
+        head: [['#', 'Student Name', 'USN', 'Status', 'Score', 'Completed At']],
+        body: submissions.map((sub, i) => [
+          i + 1,
+          sub.full_name || '—',
+          sub.student_usn,
+          sub.status === 'completed' ? 'Completed' : sub.status === 'in_progress' ? 'In Progress' : sub.status,
+          sub.score !== null ? `${sub.score}%` : '—',
+          sub.completed_at ? format(new Date(sub.completed_at), 'MMM dd, yyyy HH:mm') : '—',
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [14, 116, 144] },
+      });
+
+      doc.save(`${testTitle.replace(/[^a-zA-Z0-9]/g, '_')}_submissions.pdf`);
+      toast.success('PDF exported successfully');
+    } catch (err) {
+      logError('exportSubmissionsPDF', err);
+      toast.error('Failed to export PDF');
+    }
+  };
+
+
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
