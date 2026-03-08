@@ -6,6 +6,7 @@ import { RootCauseAnalyzer } from '@/components/analysis/RootCauseAnalyzer';
 import { ProgressDashboard } from '@/components/analysis/ProgressDashboard';
 import { PerformancePredictor } from '@/components/analysis/PerformancePredictor';
 import { MLAnalysisDashboard } from '@/components/analysis/MLAnalysisDashboard';
+import { SkillInterestAnalysis } from '@/components/student/SkillInterestAnalysis';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
