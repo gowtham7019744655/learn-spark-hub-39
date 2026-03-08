@@ -4,10 +4,9 @@ import autoTable from 'jspdf-autotable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { FileText, Download, Users, BarChart3, UserCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { drawBarChart, drawPieChart, drawStackedBar, DEFAULT_COLORS } from './pdfCharts';
 
 interface StudentMarkData {
   student_usn: string;
@@ -56,7 +55,7 @@ export const ReportGenerator = ({ studentMarks, attendanceSummaries, professorNa
   }).sort((a, b) => b.sgpa - a.sgpa);
 
   const addHeader = (doc: jsPDF, title: string) => {
-    doc.setFillColor(14, 116, 144); // primary-ish
+    doc.setFillColor(14, 116, 144);
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
@@ -90,16 +89,17 @@ export const ReportGenerator = ({ studentMarks, attendanceSummaries, professorNa
     addHeader(doc, 'Class Performance Report');
 
     // Summary stats
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Summary', 14, 52);
-
     const avgSGPA = studentSummaries.length > 0
       ? (studentSummaries.reduce((s, st) => s + st.sgpa, 0) / studentSummaries.length).toFixed(2)
       : '0.00';
     const highPerformers = studentSummaries.filter(s => s.sgpa >= 8).length;
     const atRisk = studentSummaries.filter(s => s.sgpa < 4).length;
+    const average = studentSummaries.filter(s => s.sgpa >= 4 && s.sgpa < 6).length;
+    const good = studentSummaries.filter(s => s.sgpa >= 6 && s.sgpa < 8).length;
 
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary', 14, 52);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Total Students: ${studentSummaries.length}`, 14, 60);
@@ -107,20 +107,37 @@ export const ReportGenerator = ({ studentMarks, attendanceSummaries, professorNa
     doc.text(`High Performers (SGPA ≥ 8): ${highPerformers}`, 14, 72);
     doc.text(`At-Risk Students (SGPA < 4): ${atRisk}`, 14, 78);
 
+    // --- PIE CHART: Student Performance Distribution ---
+    drawPieChart(doc, [
+      { label: 'Excellent (≥8)', value: highPerformers, color: [16, 185, 129] },
+      { label: 'Good (6-8)', value: good, color: [59, 130, 246] },
+      { label: 'Average (4-6)', value: average, color: [245, 158, 11] },
+      { label: 'At Risk (<4)', value: atRisk, color: [239, 68, 68] },
+    ], 155, 66, 22, 'Performance Distribution');
+
+    // --- BAR CHART: SGPA Distribution ---
+    const ranges = ['0-2', '2-4', '4-6', '6-8', '8-10'];
+    const counts = ranges.map((r) => {
+      const [min, max] = r.split('-').map(Number);
+      return studentSummaries.filter(s => s.sgpa >= min && s.sgpa < (max === 10 ? 11 : max)).length;
+    });
+
+    drawBarChart(doc, ranges.map((r, i) => ({
+      label: r,
+      value: counts[i],
+      color: DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+    })), 14, 88, 180, 60, 'SGPA Distribution');
+
     // Student ranking table
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Student Rankings', 14, 92);
+    doc.text('Student Rankings', 14, 162);
 
     autoTable(doc, {
-      startY: 96,
+      startY: 166,
       head: [['Rank', 'USN', 'Subjects', 'Internal', 'External', 'SGPA', 'Status']],
       body: studentSummaries.map((s, i) => [
-        i + 1,
-        s.usn,
-        s.marks.length,
-        s.totalInternal,
-        s.totalExternal,
+        i + 1, s.usn, s.marks.length, s.totalInternal, s.totalExternal,
         s.sgpa.toFixed(2),
         s.sgpa >= 8 ? 'Excellent' : s.sgpa >= 6 ? 'Good' : s.sgpa >= 4 ? 'Average' : 'At Risk',
       ]),
@@ -130,29 +147,6 @@ export const ReportGenerator = ({ studentMarks, attendanceSummaries, professorNa
       styles: { fontSize: 9 },
     });
 
-    // SGPA Distribution chart (as a table-based visual)
-    const finalY = (doc as any).lastAutoTable?.finalY || 200;
-    if (finalY < 240) {
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('SGPA Distribution', 14, finalY + 14);
-
-      const ranges = ['0-2', '2-4', '4-6', '6-8', '8-10'];
-      const counts = ranges.map((r) => {
-        const [min, max] = r.split('-').map(Number);
-        return studentSummaries.filter(s => s.sgpa >= min && s.sgpa < (max === 10 ? 11 : max)).length;
-      });
-
-      autoTable(doc, {
-        startY: finalY + 18,
-        head: [['SGPA Range', ...ranges]],
-        body: [['Students', ...counts.map(String)]],
-        theme: 'grid',
-        headStyles: { fillColor: [14, 116, 144], textColor: 255 },
-        styles: { fontSize: 9, halign: 'center' },
-      });
-    }
-
     addFooter(doc);
     doc.save('class-performance-report.pdf');
   };
@@ -161,7 +155,17 @@ export const ReportGenerator = ({ studentMarks, attendanceSummaries, professorNa
     const doc = new jsPDF();
     addHeader(doc, 'Detailed Student Marks Report');
 
-    let yPos = 50;
+    // --- BAR CHART: Top 10 students by SGPA ---
+    const top10 = studentSummaries.slice(0, 10);
+    if (top10.length > 0) {
+      drawBarChart(doc, top10.map((s) => ({
+        label: s.usn.slice(-5),
+        value: parseFloat(s.sgpa.toFixed(1)),
+        color: s.sgpa >= 8 ? [16, 185, 129] : s.sgpa >= 6 ? [59, 130, 246] : s.sgpa >= 4 ? [245, 158, 11] : [239, 68, 68],
+      })), 14, 46, 180, 65, 'Top Students by SGPA');
+    }
+
+    let yPos = 120;
 
     studentSummaries.forEach((student, idx) => {
       if (yPos > 240) {
@@ -202,33 +206,58 @@ export const ReportGenerator = ({ studentMarks, attendanceSummaries, professorNa
     const doc = new jsPDF();
     addHeader(doc, 'Attendance Report');
 
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Attendance Summary', 14, 52);
-
     const totalStudents = attendanceSummaries.length;
     const avgAttendance = totalStudents > 0
       ? (attendanceSummaries.reduce((s, a) => s + a.percentage, 0) / totalStudents).toFixed(1)
       : '0';
     const lowAttendance = attendanceSummaries.filter(a => a.percentage < 75).length;
+    const goodAttendance = attendanceSummaries.filter(a => a.percentage >= 75).length;
 
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Attendance Summary', 14, 52);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Total Students: ${totalStudents}`, 14, 60);
     doc.text(`Average Attendance: ${avgAttendance}%`, 14, 66);
     doc.text(`Students Below 75%: ${lowAttendance}`, 14, 72);
 
+    // --- PIE CHART: Attendance status distribution ---
+    const critical = attendanceSummaries.filter(a => a.percentage < 50).length;
+    const warning = attendanceSummaries.filter(a => a.percentage >= 50 && a.percentage < 75).length;
+
+    drawPieChart(doc, [
+      { label: 'OK (≥75%)', value: goodAttendance, color: [16, 185, 129] },
+      { label: 'Warning (50-75%)', value: warning, color: [245, 158, 11] },
+      { label: 'Critical (<50%)', value: critical, color: [239, 68, 68] },
+    ], 155, 66, 22, 'Attendance Status');
+
+    // --- BAR CHART: Bottom 10 attendance ---
+    const bottom10 = [...attendanceSummaries].sort((a, b) => a.percentage - b.percentage).slice(0, 10);
+    if (bottom10.length > 0) {
+      drawBarChart(doc, bottom10.map((a) => ({
+        label: a.usn.slice(-5),
+        value: a.percentage,
+        color: a.percentage >= 75 ? [16, 185, 129] : a.percentage >= 50 ? [245, 158, 11] : [239, 68, 68],
+      })), 14, 88, 180, 60, 'Lowest Attendance Students (%)');
+    }
+
+    // --- STACKED BAR: Overall present/absent ---
+    const totalPresent = attendanceSummaries.reduce((s, a) => s + a.present, 0);
+    const totalAbsent = attendanceSummaries.reduce((s, a) => s + a.absent, 0);
+    drawStackedBar(doc, 14, 160, 180, 10, [
+      { value: totalPresent, color: [16, 185, 129], label: 'Present' },
+      { value: totalAbsent, color: [239, 68, 68], label: 'Absent' },
+    ], 'Overall Attendance Ratio');
+
+    // Table
     autoTable(doc, {
-      startY: 82,
+      startY: 186,
       head: [['USN', 'Total Classes', 'Present', 'Absent', 'Percentage', 'Status']],
       body: attendanceSummaries
         .sort((a, b) => a.percentage - b.percentage)
         .map(a => [
-          a.usn,
-          a.totalClasses,
-          a.present,
-          a.absent,
-          `${a.percentage}%`,
+          a.usn, a.totalClasses, a.present, a.absent, `${a.percentage}%`,
           a.percentage >= 75 ? 'OK' : a.percentage >= 50 ? 'Warning' : 'Critical',
         ]),
       theme: 'grid',
@@ -258,18 +287,36 @@ export const ReportGenerator = ({ studentMarks, attendanceSummaries, professorNa
     const avgSGPA = studentSummaries.length > 0
       ? (studentSummaries.reduce((s, st) => s + st.sgpa, 0) / studentSummaries.length).toFixed(2)
       : '0.00';
+    const highPerformers = studentSummaries.filter(s => s.sgpa >= 8).length;
+    const atRisk = studentSummaries.filter(s => s.sgpa < 4).length;
+    const good = studentSummaries.filter(s => s.sgpa >= 6 && s.sgpa < 8).length;
+    const average = studentSummaries.filter(s => s.sgpa >= 4 && s.sgpa < 6).length;
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('1. Academic Performance Overview', 14, 52);
-
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Total Students: ${studentSummaries.length}  |  Average SGPA: ${avgSGPA}`, 14, 60);
-    doc.text(`High Performers: ${studentSummaries.filter(s => s.sgpa >= 8).length}  |  At Risk: ${studentSummaries.filter(s => s.sgpa < 4).length}`, 14, 66);
+    doc.text(`High Performers: ${highPerformers}  |  At Risk: ${atRisk}`, 14, 66);
+
+    // --- PIE CHART ---
+    drawPieChart(doc, [
+      { label: 'Excellent', value: highPerformers, color: [16, 185, 129] },
+      { label: 'Good', value: good, color: [59, 130, 246] },
+      { label: 'Average', value: average, color: [245, 158, 11] },
+      { label: 'At Risk', value: atRisk, color: [239, 68, 68] },
+    ], 155, 60, 18, 'Grade Distribution');
+
+    // --- BAR CHART: Top students ---
+    const top8 = studentSummaries.slice(0, 8);
+    drawBarChart(doc, top8.map((s) => ({
+      label: s.usn.slice(-5),
+      value: parseFloat(s.sgpa.toFixed(1)),
+    })), 14, 76, 180, 55, 'Top Students SGPA');
 
     autoTable(doc, {
-      startY: 74,
+      startY: 140,
       head: [['Rank', 'USN', 'SGPA', 'Internal', 'External', 'Status']],
       body: studentSummaries.slice(0, 20).map((s, i) => [
         i + 1, s.usn, s.sgpa.toFixed(2), s.totalInternal, s.totalExternal,
@@ -292,8 +339,24 @@ export const ReportGenerator = ({ studentMarks, attendanceSummaries, professorNa
       doc.setFont('helvetica', 'normal');
       doc.text(`Average Attendance: ${avgAtt}%  |  Below 75%: ${attendanceSummaries.filter(a => a.percentage < 75).length}`, 14, 28);
 
+      // --- Stacked bar ---
+      const totalPresent = attendanceSummaries.reduce((s, a) => s + a.present, 0);
+      const totalAbsent = attendanceSummaries.reduce((s, a) => s + a.absent, 0);
+      drawStackedBar(doc, 14, 36, 180, 10, [
+        { value: totalPresent, color: [16, 185, 129], label: 'Present' },
+        { value: totalAbsent, color: [239, 68, 68], label: 'Absent' },
+      ], 'Overall Attendance');
+
+      // --- BAR CHART: attendance by student ---
+      const bottom8 = [...attendanceSummaries].sort((a, b) => a.percentage - b.percentage).slice(0, 8);
+      drawBarChart(doc, bottom8.map((a) => ({
+        label: a.usn.slice(-5),
+        value: a.percentage,
+        color: a.percentage >= 75 ? [16, 185, 129] : a.percentage >= 50 ? [245, 158, 11] : [239, 68, 68],
+      })), 14, 58, 180, 55, 'Students with Lowest Attendance (%)');
+
       autoTable(doc, {
-        startY: 34,
+        startY: 120,
         head: [['USN', 'Classes', 'Present', 'Absent', '%', 'Status']],
         body: attendanceSummaries.sort((a, b) => a.percentage - b.percentage).map(a => [
           a.usn, a.totalClasses, a.present, a.absent, `${a.percentage}%`,
@@ -327,10 +390,10 @@ export const ReportGenerator = ({ studentMarks, attendanceSummaries, professorNa
   };
 
   const reportTypes = [
-    { value: 'class-performance', label: 'Class Performance', icon: BarChart3, description: 'Student rankings, SGPA distribution, and summary stats' },
-    { value: 'student-detail', label: 'Detailed Student Marks', icon: Users, description: 'Per-student subject-wise marks breakdown' },
-    { value: 'attendance', label: 'Attendance Report', icon: UserCheck, description: 'Student attendance percentages with status flags' },
-    { value: 'comprehensive', label: 'Comprehensive Report', icon: FileText, description: 'Combined performance + attendance in one document' },
+    { value: 'class-performance', label: 'Class Performance', icon: BarChart3, description: 'Rankings, SGPA bar chart, pie distribution' },
+    { value: 'student-detail', label: 'Detailed Student Marks', icon: Users, description: 'Per-student marks with top SGPA bar chart' },
+    { value: 'attendance', label: 'Attendance Report', icon: UserCheck, description: 'Pie chart, bar chart & stacked attendance ratios' },
+    { value: 'comprehensive', label: 'Comprehensive Report', icon: FileText, description: 'Full visual report with all charts combined' },
   ];
 
   return (
