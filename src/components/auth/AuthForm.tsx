@@ -89,7 +89,7 @@ export const AuthForm = ({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = loginSchema.safeParse(loginForm);
+    const result = createLoginSchema(requireCollegeEmail).safeParse(loginForm);
     if (!result.success) {
       toast.error(result.error.errors[0].message);
       return;
@@ -114,7 +114,7 @@ export const AuthForm = ({
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    const schema = showUsn ? signupWithUsnSchema : signupSchema;
+    const schema = showUsn ? createSignupWithUsnSchema(requireCollegeEmail) : createSignupSchema(requireCollegeEmail);
     const result = schema.safeParse(signupForm);
     if (!result.success) {
       toast.error(result.error.errors[0].message);
