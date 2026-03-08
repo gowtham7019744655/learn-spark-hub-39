@@ -21,6 +21,7 @@ import { Navigate } from 'react-router-dom';
 import { Clock, CheckCircle, PlayCircle, FileText, Award, Loader2, ArrowLeft, PlusCircle, Trash2, ListPlus, ClipboardCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { TestTaking } from '@/components/tests/TestTaking';
+import { TestResults } from '@/components/tests/TestResults';
 
 const TestsPage = () => {
   const { isAuthenticated, profile, role, user } = useAuth();
@@ -29,6 +30,7 @@ const TestsPage = () => {
   const { studentTests, loading: studentTestsLoading } = useStudentTests(profile?.usn || undefined);
   const [activeTab, setActiveTab] = useState<'available' | 'completed' | 'upcoming'>('available');
   const [takingTest, setTakingTest] = useState<string | null>(null);
+  const [viewingResults, setViewingResults] = useState<string | null>(null);
 
   // Lecturer state
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
@@ -112,6 +114,29 @@ const TestsPage = () => {
       <MainLayout>
         <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // View results mode (students only)
+  if (viewingResults && profile?.usn && !isLecturer) {
+    const test = categorizedTests.find(t => t.id === viewingResults);
+    if (!test) {
+      setViewingResults(null);
+      return null;
+    }
+
+    return (
+      <MainLayout>
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+          <TestResults
+            testId={test.id}
+            testTitle={test.title}
+            studentUsn={profile.usn}
+            score={test.score}
+            onBack={() => setViewingResults(null)}
+          />
         </div>
       </MainLayout>
     );
@@ -404,6 +429,8 @@ const TestsPage = () => {
                       onClick={() => {
                         if (test.displayStatus === 'available' && profile?.usn) {
                           setTakingTest(test.id);
+                        } else if (test.displayStatus === 'completed') {
+                          setViewingResults(test.id);
                         }
                       }}
                     >
