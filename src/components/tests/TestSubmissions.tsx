@@ -119,7 +119,7 @@ export const TestSubmissions = ({ testId, testTitle, maxScore, onBack }: TestSub
     return grades.filter(g => g.value > 0);
   }, [submissions]);
 
-
+  const exportPDF = () => {
     try {
       const doc = new jsPDF();
       const now = format(new Date(), 'MMM dd, yyyy HH:mm');
