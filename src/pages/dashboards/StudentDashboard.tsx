@@ -8,6 +8,7 @@ import { ProgressDashboard } from '@/components/analysis/ProgressDashboard';
 import { PerformancePredictor } from '@/components/analysis/PerformancePredictor';
 import { MLAnalysisDashboard } from '@/components/analysis/MLAnalysisDashboard';
 import { SkillInterestAnalysis } from '@/components/student/SkillInterestAnalysis';
+import { AttendanceCalendar } from '@/components/student/AttendanceCalendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -82,7 +83,7 @@ const StudentDashboard = () => {
   const { profile, role, isAuthenticated, user, loading: authLoading } = useAuth();
   const { marks, loading } = useRealtimeStudentMarks(profile?.usn || undefined);
   const { assignments } = useRealtimeAssignments();
-  const { getSummaryByStudent, getOverallPercentage, loading: attendanceLoading } = useAttendance(profile?.usn || undefined);
+  const { records: attendanceRecords, getSummaryByStudent, getOverallPercentage, loading: attendanceLoading } = useAttendance(profile?.usn || undefined);
 
   const attendanceSummary = getSummaryByStudent(profile?.usn || undefined);
   const overallAttendance = getOverallPercentage(profile?.usn || undefined);
@@ -310,7 +311,7 @@ const StudentDashboard = () => {
             <SkillInterestAnalysis marks={marks} />
           </TabsContent>
 
-          <TabsContent value="attendance">
+          <TabsContent value="attendance" className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -363,6 +364,8 @@ const StudentDashboard = () => {
                 )}
               </CardContent>
             </Card>
+
+            <AttendanceCalendar records={attendanceRecords} />
           </TabsContent>
         </Tabs>
 
