@@ -66,6 +66,7 @@ export const AuthForm = ({
   emailPlaceholder = "you@email.com",
   namePlaceholder = "Your Name",
   showUsn = false,
+  requireCollegeEmail = false,
 }: AuthFormProps) => {
   const [activeTab, setActiveTab] = useState('login');
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
