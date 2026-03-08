@@ -26,12 +26,13 @@ import {
 import { Link, Navigate } from 'react-router-dom';
 import {
   Users, BookOpen, FileText, TrendingUp, Clock, PlusCircle, Trash2,
-  Calendar, ClipboardCheck, Loader2, LayoutDashboard, UserCheck,
+  Calendar, ClipboardCheck, Loader2, LayoutDashboard, UserCheck, Download,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { format } from 'date-fns';
+import { ReportGenerator } from '@/components/reports/ReportGenerator';
 
 const classPerformance = [
   { class: 'CS101', avg: 85 },
@@ -323,6 +324,10 @@ const LecturerDashboard = () => {
             <TabsTrigger value="attendance" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
               <UserCheck className="h-4 w-4" />
               Attendance
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <Download className="h-4 w-4" />
+              Reports
             </TabsTrigger>
           </TabsList>
 
