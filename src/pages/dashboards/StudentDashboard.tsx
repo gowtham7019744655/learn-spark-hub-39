@@ -28,6 +28,7 @@ import {
   Mail,
   Hash,
   Layers,
+  Compass,
 } from 'lucide-react';
 import {
   AreaChart,
