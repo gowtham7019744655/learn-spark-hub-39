@@ -429,6 +429,8 @@ const TestsPage = () => {
                       onClick={() => {
                         if (test.displayStatus === 'available' && profile?.usn) {
                           setTakingTest(test.id);
+                        } else if (test.displayStatus === 'completed') {
+                          setViewingResults(test.id);
                         }
                       }}
                     >
