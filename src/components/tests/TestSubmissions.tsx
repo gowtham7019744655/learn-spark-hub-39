@@ -8,6 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Users, Loader2, ArrowLeft, Download, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { logError } from '@/lib/errorLogger';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { toast } from 'sonner';
 
 interface Submission {
   student_usn: string;
