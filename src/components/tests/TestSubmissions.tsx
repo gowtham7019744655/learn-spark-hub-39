@@ -83,7 +83,43 @@ export const TestSubmissions = ({ testId, testTitle, maxScore, onBack }: TestSub
   const highestScore = submissions.length > 0 ? Math.max(...submissions.filter(s => s.score !== null).map(s => s.score!), 0) : 0;
   const lowestScore = completedCount > 0 ? Math.min(...submissions.filter(s => s.status === 'completed' && s.score !== null).map(s => s.score!)) : 0;
 
-  const exportPDF = () => {
+  const GRADE_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+
+  const histogramData = useMemo(() => {
+    const bins = [
+      { range: '0-20', min: 0, max: 20, count: 0 },
+      { range: '21-40', min: 21, max: 40, count: 0 },
+      { range: '41-60', min: 41, max: 60, count: 0 },
+      { range: '61-80', min: 61, max: 80, count: 0 },
+      { range: '81-100', min: 81, max: 100, count: 0 },
+    ];
+    submissions
+      .filter(s => s.status === 'completed' && s.score !== null)
+      .forEach(s => {
+        const bin = bins.find(b => s.score! >= b.min && s.score! <= b.max);
+        if (bin) bin.count++;
+      });
+    return bins.map(b => ({ range: b.range, Students: b.count }));
+  }, [submissions]);
+
+  const gradeBreakdown = useMemo(() => {
+    const grades = [
+      { name: 'Excellent (81-100)', min: 81, max: 100, value: 0 },
+      { name: 'Good (61-80)', min: 61, max: 80, value: 0 },
+      { name: 'Average (41-60)', min: 41, max: 60, value: 0 },
+      { name: 'Below Avg (21-40)', min: 21, max: 40, value: 0 },
+      { name: 'Poor (0-20)', min: 0, max: 20, value: 0 },
+    ];
+    submissions
+      .filter(s => s.status === 'completed' && s.score !== null)
+      .forEach(s => {
+        const g = grades.find(g => s.score! >= g.min && s.score! <= g.max);
+        if (g) g.value++;
+      });
+    return grades.filter(g => g.value > 0);
+  }, [submissions]);
+
+
     try {
       const doc = new jsPDF();
       const now = format(new Date(), 'MMM dd, yyyy HH:mm');
