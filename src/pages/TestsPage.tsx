@@ -119,6 +119,29 @@ const TestsPage = () => {
     );
   }
 
+  // View results mode (students only)
+  if (viewingResults && profile?.usn && !isLecturer) {
+    const test = categorizedTests.find(t => t.id === viewingResults);
+    if (!test) {
+      setViewingResults(null);
+      return null;
+    }
+
+    return (
+      <MainLayout>
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+          <TestResults
+            testId={test.id}
+            testTitle={test.title}
+            studentUsn={profile.usn}
+            score={test.score}
+            onBack={() => setViewingResults(null)}
+          />
+        </div>
+      </MainLayout>
+    );
+  }
+
   // Test-taking mode (students only)
   if (takingTest && profile?.usn && !isLecturer) {
     const test = categorizedTests.find(t => t.id === takingTest);
