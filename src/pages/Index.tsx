@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { GraduationCap, BookOpen, BarChart3, Brain, Shield, Zap, ArrowRight } from 'lucide-react';
+import { GraduationCap, BookOpen, HeartHandshake, BarChart3, Brain, Shield, Zap, ArrowRight } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -15,13 +15,11 @@ const Index = () => {
       const dashboards: Record<string, string> = {
         student: '/student/dashboard',
         lecturer: '/lecturer/dashboard',
-        parent: '/parent/dashboard',
+        counselor: '/counselor/dashboard',
       };
       if (dashboards[role]) navigate(dashboards[role], { replace: true });
     }
   }, [isAuthenticated, role, loading, navigate]);
-
-  const isAdmin = true;
 
   const loginOptions = [
     {
@@ -34,13 +32,22 @@ const Index = () => {
       iconColor: 'text-primary',
     },
     {
-      title: 'Lecturer Portal',
+      title: 'Professor Portal',
       description: 'Manage courses, grade assessments, create tests, and analyze class-wide student performance data.',
       icon: BookOpen,
       link: '/login/lecturer',
       gradient: 'from-secondary/10 to-secondary/5',
       iconBg: 'bg-secondary/15',
       iconColor: 'text-secondary',
+    },
+    {
+      title: 'Counselor Portal',
+      description: 'Access academic prediction reports, identify at-risk students, and plan intervention strategies.',
+      icon: HeartHandshake,
+      link: '/login/counselor',
+      gradient: 'from-primary/10 to-primary/5',
+      iconBg: 'bg-primary/15',
+      iconColor: 'text-primary',
     },
   ];
 
@@ -52,13 +59,13 @@ const Index = () => {
     },
     {
       icon: Brain,
-      title: 'AI-Powered Insights',
-      description: 'Smart predictions and personalized study recommendations powered by machine learning.',
+      title: 'AI Prediction & Skills',
+      description: 'Smart predictions, skill gap analysis, and personalized study recommendations.',
     },
     {
       icon: Shield,
-      title: 'Secure & Reliable',
-      description: 'Enterprise-grade security with role-based access control and real-time data sync.',
+      title: 'Risk Monitoring',
+      description: 'Early dropout detection, behavioral trend analysis, and attendance risk alerts.',
     },
     {
       icon: Zap,
@@ -71,7 +78,6 @@ const Index = () => {
     <MainLayout>
       {/* Hero Section */}
       <section className="relative overflow-hidden px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
-        {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-secondary/8" />
           <div className="absolute left-1/2 top-0 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-primary/5 blur-3xl" />
@@ -83,14 +89,14 @@ const Index = () => {
             Academic Performance Platform
           </div>
           <h1 className="mb-6 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            Student Performance
+            EDU-PREDICT
             <span className="block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Hub
+              Academic & Skills Pathway
             </span>
           </h1>
           <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
             A comprehensive platform for tracking, analyzing, and improving academic 
-            performance with AI-driven insights and real-time analytics.
+            performance with AI-driven insights, skill analysis, and real-time analytics.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link to="/login/student">
@@ -101,7 +107,7 @@ const Index = () => {
             </Link>
             <Link to="/login/lecturer">
               <Button variant="outline" size="lg" className="h-12 px-8 text-base font-semibold">
-                Lecturer Access
+                Professor Access
               </Button>
             </Link>
           </div>
@@ -110,12 +116,12 @@ const Index = () => {
 
       {/* Login Portals */}
       <section className="px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <div className="mb-10 text-center">
             <h2 className="mb-3 text-2xl font-bold text-foreground sm:text-3xl">Choose Your Portal</h2>
             <p className="text-muted-foreground">Select your role to access the platform features tailored for you.</p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {loginOptions.map((option) => (
               <Link key={option.title} to={option.link} className="group">
                 <Card className="relative h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1">
@@ -144,7 +150,7 @@ const Index = () => {
       <section className="border-t border-border bg-card/50 px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="mb-3 text-2xl font-bold text-foreground sm:text-3xl">Why Performance Hub?</h2>
+            <h2 className="mb-3 text-2xl font-bold text-foreground sm:text-3xl">Why EDU-PREDICT?</h2>
             <p className="mx-auto max-w-xl text-muted-foreground">
               Everything you need to track, analyze, and improve academic outcomes in one place.
             </p>
@@ -173,17 +179,15 @@ const Index = () => {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
                 <GraduationCap className="h-5 w-5 text-primary" />
               </div>
-              <span className="text-lg font-bold text-foreground">Performance Hub</span>
+              <span className="text-lg font-bold text-foreground">EDU-PREDICT</span>
             </div>
             <div className="flex items-center gap-6">
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
-                  Admin Panel
-                </Link>
-              )}
+              <Link
+                to="/admin"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              >
+                Admin Panel
+              </Link>
               <p className="text-sm text-muted-foreground">
                 © {new Date().getFullYear()} All rights reserved.
               </p>
