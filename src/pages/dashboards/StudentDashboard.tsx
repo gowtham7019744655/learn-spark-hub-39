@@ -83,7 +83,7 @@ const StudentDashboard = () => {
   const { profile, role, isAuthenticated, user, loading: authLoading } = useAuth();
   const { marks, loading } = useRealtimeStudentMarks(profile?.usn || undefined);
   const { assignments } = useRealtimeAssignments();
-  const { getSummaryByStudent, getOverallPercentage, loading: attendanceLoading } = useAttendance(profile?.usn || undefined);
+  const { records: attendanceRecords, getSummaryByStudent, getOverallPercentage, loading: attendanceLoading } = useAttendance(profile?.usn || undefined);
 
   const attendanceSummary = getSummaryByStudent(profile?.usn || undefined);
   const overallAttendance = getOverallPercentage(profile?.usn || undefined);
