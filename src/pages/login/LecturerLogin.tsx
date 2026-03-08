@@ -9,8 +9,9 @@ const LecturerLogin = () => (
     icon={BookOpen}
     iconClassName="bg-secondary/10"
     dashboardPath="/lecturer/dashboard"
-    emailPlaceholder="lecturer@school.edu"
+    emailPlaceholder="lecturer@college.ac.in"
     namePlaceholder="Dr. Jane Smith"
+    requireCollegeEmail
   />
 );
 

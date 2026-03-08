@@ -10,8 +10,9 @@ const CounselorLogin = () => {
       icon={HeartHandshake}
       iconClassName="bg-primary/10"
       dashboardPath="/counselor/dashboard"
-      emailPlaceholder="counselor@school.edu"
+      emailPlaceholder="counselor@college.ac.in"
       namePlaceholder="Counselor Name"
+      requireCollegeEmail
     />
   );
 };

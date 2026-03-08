@@ -21,28 +21,37 @@ interface AuthFormProps {
   emailPlaceholder?: string;
   namePlaceholder?: string;
   showUsn?: boolean;
+  requireCollegeEmail?: boolean;
 }
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
+const collegeEmailRegex = /^[^@]+@[^@]+\.ac\.in$/i;
+
+const createLoginSchema = (requireCollegeEmail: boolean) => z.object({
+  email: z.string().email('Please enter a valid email').refine(
+    (email) => !requireCollegeEmail || collegeEmailRegex.test(email),
+    { message: 'Please use an official college email (e.g., name@college.ac.in)' }
+  ),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-const baseSignupSchema = z.object({
+const createBaseSignupSchema = (requireCollegeEmail: boolean) => z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
+  email: z.string().email('Please enter a valid email').refine(
+    (email) => !requireCollegeEmail || collegeEmailRegex.test(email),
+    { message: 'Please use an official college email (e.g., name@college.ac.in)' }
+  ),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-const signupWithUsnSchema = baseSignupSchema.extend({
+const createSignupWithUsnSchema = (requireCollegeEmail: boolean) => createBaseSignupSchema(requireCollegeEmail).extend({
   usn: z.string().min(3, 'USN must be at least 3 characters'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
 
-const signupSchema = baseSignupSchema.refine((data) => data.password === data.confirmPassword, {
+const createSignupSchema = (requireCollegeEmail: boolean) => createBaseSignupSchema(requireCollegeEmail).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
@@ -57,6 +66,7 @@ export const AuthForm = ({
   emailPlaceholder = "you@email.com",
   namePlaceholder = "Your Name",
   showUsn = false,
+  requireCollegeEmail = false,
 }: AuthFormProps) => {
   const [activeTab, setActiveTab] = useState('login');
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
@@ -79,7 +89,7 @@ export const AuthForm = ({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = loginSchema.safeParse(loginForm);
+    const result = createLoginSchema(requireCollegeEmail).safeParse(loginForm);
     if (!result.success) {
       toast.error(result.error.errors[0].message);
       return;
@@ -104,7 +114,7 @@ export const AuthForm = ({
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    const schema = showUsn ? signupWithUsnSchema : signupSchema;
+    const schema = showUsn ? createSignupWithUsnSchema(requireCollegeEmail) : createSignupSchema(requireCollegeEmail);
     const result = schema.safeParse(signupForm);
     if (!result.success) {
       toast.error(result.error.errors[0].message);
