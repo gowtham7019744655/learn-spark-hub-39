@@ -86,7 +86,7 @@ const TestsPage = () => {
   };
 
   const handleCreateTest = async () => {
-    if (!newTest.title || !newTest.due_date) return;
+    if (!newTest.title) return;
     const success = await addTest({
       title: newTest.title,
       description: newTest.description || null,
@@ -94,7 +94,7 @@ const TestsPage = () => {
       duration_minutes: newTest.duration_minutes,
       total_questions: newTest.total_questions,
       max_score: newTest.max_score,
-      due_date: newTest.due_date,
+      due_date: newTest.due_date || null,
       created_by: user?.id || '',
       status: 'draft',
     });
@@ -210,7 +210,7 @@ const TestsPage = () => {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsTestDialogOpen(false)}>Cancel</Button>
-                  <Button onClick={handleCreateTest} disabled={!newTest.title || !newTest.due_date}>Create Test</Button>
+                  <Button onClick={handleCreateTest} disabled={!newTest.title}>Create Test</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
