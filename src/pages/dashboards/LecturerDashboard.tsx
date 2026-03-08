@@ -717,6 +717,14 @@ const LecturerDashboard = () => {
               </Card>
             </div>
           </TabsContent>
+
+          <TabsContent value="reports">
+            <ReportGenerator
+              studentMarks={allStudentMarks}
+              attendanceSummaries={getStudentAttendanceSummaries()}
+              professorName={profile?.full_name || profile?.email || 'Professor'}
+            />
+          </TabsContent>
         </Tabs>
 
         {/* Quick Actions */}
