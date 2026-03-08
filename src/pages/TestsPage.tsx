@@ -7,25 +7,24 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Navigate } from 'react-router-dom';
-import { Clock, CheckCircle, PlayCircle, FileText, Award, Loader2 } from 'lucide-react';
+import { Clock, CheckCircle, PlayCircle, FileText, Award, Loader2, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import { TestTaking } from '@/components/tests/TestTaking';
 
 const TestsPage = () => {
-  const { isAuthenticated, profile } = useAuth();
+  const { isAuthenticated, profile, role } = useAuth();
   const { tests, loading: testsLoading } = useTests();
   const { studentTests, loading: studentTestsLoading } = useStudentTests(profile?.usn || undefined);
   const [activeTab, setActiveTab] = useState<'available' | 'completed' | 'upcoming'>('available');
+  const [takingTest, setTakingTest] = useState<string | null>(null);
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
   const loading = testsLoading || studentTestsLoading;
-
-  // Map student test submissions
   const studentTestMap = new Map(studentTests.map(st => [st.test_id, st]));
 
-  // Categorize tests
   const categorizedTests = tests
     .filter(t => t.status === 'published')
     .map(test => {
@@ -68,6 +67,34 @@ const TestsPage = () => {
       <MainLayout>
         <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Test-taking mode
+  if (takingTest && profile?.usn) {
+    const test = categorizedTests.find(t => t.id === takingTest);
+    if (!test) {
+      setTakingTest(null);
+      return null;
+    }
+
+    return (
+      <MainLayout>
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+          <Button variant="ghost" className="mb-4 gap-2" onClick={() => setTakingTest(null)}>
+            <ArrowLeft className="h-4 w-4" /> Back to Tests
+          </Button>
+          <TestTaking
+            testId={test.id}
+            testTitle={test.title}
+            durationMinutes={test.duration_minutes}
+            maxScore={test.max_score}
+            studentUsn={profile.usn}
+            onComplete={() => {}}
+            onBack={() => setTakingTest(null)}
+          />
         </div>
       </MainLayout>
     );
@@ -123,22 +150,13 @@ const TestsPage = () => {
 
         {/* Tabs */}
         <div className="mb-6 flex gap-2">
-          <Button
-            variant={activeTab === 'available' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('available')}
-          >
+          <Button variant={activeTab === 'available' ? 'default' : 'outline'} onClick={() => setActiveTab('available')}>
             Available
           </Button>
-          <Button
-            variant={activeTab === 'completed' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('completed')}
-          >
+          <Button variant={activeTab === 'completed' ? 'default' : 'outline'} onClick={() => setActiveTab('completed')}>
             Completed
           </Button>
-          <Button
-            variant={activeTab === 'upcoming' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('upcoming')}
-          >
+          <Button variant={activeTab === 'upcoming' ? 'default' : 'outline'} onClick={() => setActiveTab('upcoming')}>
             Upcoming
           </Button>
         </div>
@@ -154,18 +172,10 @@ const TestsPage = () => {
                     <CardDescription>{test.subjects?.name || 'General'}</CardDescription>
                   </div>
                   {test.displayStatus === 'completed' && test.score !== null && (
-                    <Badge
-                      variant={test.score >= 80 ? 'default' : 'secondary'}
-                    >
-                      {test.score}%
-                    </Badge>
+                    <Badge variant={test.score >= 80 ? 'default' : 'secondary'}>{test.score}%</Badge>
                   )}
-                  {test.displayStatus === 'available' && (
-                    <Badge variant="outline">Ready</Badge>
-                  )}
-                  {test.displayStatus === 'upcoming' && (
-                    <Badge variant="secondary">Scheduled</Badge>
-                  )}
+                  {test.displayStatus === 'available' && <Badge variant="outline">Ready</Badge>}
+                  {test.displayStatus === 'upcoming' && <Badge variant="secondary">Scheduled</Badge>}
                 </div>
               </CardHeader>
               <CardContent>
@@ -200,7 +210,12 @@ const TestsPage = () => {
                   <Button
                     className="w-full"
                     variant={test.displayStatus === 'completed' ? 'outline' : 'default'}
-                    disabled={test.displayStatus === 'upcoming'}
+                    disabled={test.displayStatus === 'upcoming' || (role !== 'student')}
+                    onClick={() => {
+                      if (test.displayStatus === 'available' && profile?.usn) {
+                        setTakingTest(test.id);
+                      }
+                    }}
                   >
                     {test.displayStatus === 'available' && 'Start Test'}
                     {test.displayStatus === 'completed' && 'View Results'}
