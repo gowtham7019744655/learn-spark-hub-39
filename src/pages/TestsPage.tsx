@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import { TestTaking } from '@/components/tests/TestTaking';
 import { TestResults } from '@/components/tests/TestResults';
 import { TestLeaderboard } from '@/components/tests/TestLeaderboard';
+import { OverallLeaderboard } from '@/components/tests/OverallLeaderboard';
 import { TestSubmissions } from '@/components/tests/TestSubmissions';
 
 const TestsPage = () => {
@@ -388,8 +389,9 @@ const TestsPage = () => {
           </Card>
         </div>
 
-        {/* Leaderboard */}
-        <div className="mb-8">
+        {/* Leaderboards */}
+        <div className="mb-8 grid gap-4 lg:grid-cols-2">
+          <OverallLeaderboard currentUsn={profile?.usn || undefined} />
           <TestLeaderboard
             tests={tests.filter(t => t.status === 'published').map(t => ({ id: t.id, title: t.title }))}
             currentUsn={profile?.usn || undefined}
