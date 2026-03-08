@@ -187,6 +187,10 @@ const StudentDashboard = () => {
               <Activity className="h-4 w-4" />
               ML Models
             </TabsTrigger>
+            <TabsTrigger value="skills" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <Compass className="h-4 w-4" />
+              Skills & Interests
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
