@@ -21,6 +21,7 @@ interface AuthFormProps {
   emailPlaceholder?: string;
   namePlaceholder?: string;
   showUsn?: boolean;
+  requireCollegeEmail?: boolean;
 }
 
 const loginSchema = z.object({
