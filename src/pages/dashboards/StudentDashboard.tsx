@@ -2,6 +2,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeStudentMarks } from '@/hooks/useRealtimeStudentMarks';
 import { useRealtimeAssignments } from '@/hooks/useRealtimeAssignments';
+import { useAttendance } from '@/hooks/useAttendance';
 import { RootCauseAnalyzer } from '@/components/analysis/RootCauseAnalyzer';
 import { ProgressDashboard } from '@/components/analysis/ProgressDashboard';
 import { PerformancePredictor } from '@/components/analysis/PerformancePredictor';
@@ -29,6 +30,7 @@ import {
   Hash,
   Layers,
   Compass,
+  UserCheck,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -80,6 +82,10 @@ const StudentDashboard = () => {
   const { profile, role, isAuthenticated, user, loading: authLoading } = useAuth();
   const { marks, loading } = useRealtimeStudentMarks(profile?.usn || undefined);
   const { assignments } = useRealtimeAssignments();
+  const { getSummaryByStudent, getOverallPercentage, loading: attendanceLoading } = useAttendance(profile?.usn || undefined);
+
+  const attendanceSummary = getSummaryByStudent(profile?.usn || undefined);
+  const overallAttendance = getOverallPercentage(profile?.usn || undefined);
 
   if (authLoading) {
     return (
@@ -150,6 +156,7 @@ const StudentDashboard = () => {
             { icon: TrendingUp, label: 'SGPA (10-point)', value: calculateSGPA(marks), color: 'primary' },
             { icon: BookOpen, label: 'Subjects', value: marks.length, color: 'primary' },
             { icon: Clock, label: 'Pending Tasks', value: 12, color: 'primary' },
+            { icon: UserCheck, label: 'Attendance', value: `${overallAttendance}%`, color: 'primary' },
             { icon: Award, label: 'Avg. Score', value: `${avgPercentage}%`, color: 'primary' },
           ].map((stat) => (
             <Card key={stat.label} className="group relative overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
@@ -190,6 +197,10 @@ const StudentDashboard = () => {
             <TabsTrigger value="skills" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
               <Compass className="h-4 w-4" />
               Skills & Interests
+            </TabsTrigger>
+            <TabsTrigger value="attendance" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <UserCheck className="h-4 w-4" />
+              Attendance
             </TabsTrigger>
           </TabsList>
 
@@ -297,6 +308,61 @@ const StudentDashboard = () => {
 
           <TabsContent value="skills">
             <SkillInterestAnalysis marks={marks} />
+          </TabsContent>
+
+          <TabsContent value="attendance">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <UserCheck className="h-5 w-5 text-primary" />
+                      Attendance Overview
+                    </CardTitle>
+                    <CardDescription>Your attendance across all subjects</CardDescription>
+                  </div>
+                  <Badge variant={overallAttendance >= 75 ? 'default' : 'destructive'}>
+                    Overall: {overallAttendance}%
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {attendanceLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : attendanceSummary.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <UserCheck className="mb-3 h-10 w-10 text-muted-foreground/40" />
+                    <p className="text-muted-foreground">No attendance records yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {attendanceSummary.map((s) => (
+                      <div key={s.subject_id} className="rounded-xl border border-border p-4 transition-all hover:shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-semibold text-foreground">{s.subject_name}</p>
+                          <Badge variant={s.percentage >= 75 ? 'default' : s.percentage >= 60 ? 'secondary' : 'destructive'}>
+                            {s.percentage}%
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span>Total: {s.total_classes}</span>
+                          <span className="text-green-600">Present: {s.present}</span>
+                          <span className="text-red-600">Absent: {s.absent}</span>
+                        </div>
+                        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={`h-full rounded-full transition-all ${s.percentage >= 75 ? 'bg-primary' : s.percentage >= 60 ? 'bg-yellow-500' : 'bg-destructive'}`}
+                            style={{ width: `${s.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 

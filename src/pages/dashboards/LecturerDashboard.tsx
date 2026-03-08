@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeAssignments } from '@/hooks/useRealtimeAssignments';
 import { useTests } from '@/hooks/useTests';
 import { useSubjects } from '@/hooks/useSubjects';
+import { useAttendance } from '@/hooks/useAttendance';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -25,7 +26,7 @@ import {
 import { Link, Navigate } from 'react-router-dom';
 import {
   Users, BookOpen, FileText, TrendingUp, Clock, PlusCircle, Trash2,
-  Calendar, ClipboardCheck, Loader2, LayoutDashboard,
+  Calendar, ClipboardCheck, Loader2, LayoutDashboard, UserCheck,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -51,6 +52,12 @@ const LecturerDashboard = () => {
   const { assignments, loading: assignmentsLoading, addAssignment, deleteAssignment } = useRealtimeAssignments();
   const { tests, loading: testsLoading, addTest, deleteTest, updateTest } = useTests();
   const { subjects } = useSubjects();
+  const { markAttendance, getStudentAttendanceSummaries, loading: attendanceLoading } = useAttendance();
+
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [attendanceSubject, setAttendanceSubject] = useState('');
+  const [attendanceUsns, setAttendanceUsns] = useState('');
+  const [attendanceStatus, setAttendanceStatus] = useState('present');
 
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
@@ -313,6 +320,10 @@ const LecturerDashboard = () => {
             <TabsTrigger value="student-marks" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">Student Marks</TabsTrigger>
             <TabsTrigger value="assignments" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">Assignments</TabsTrigger>
             <TabsTrigger value="tests" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">Tests</TabsTrigger>
+            <TabsTrigger value="attendance" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <UserCheck className="h-4 w-4" />
+              Attendance
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -609,6 +620,97 @@ const LecturerDashboard = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="attendance" className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Mark Attendance Form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <UserCheck className="h-5 w-5 text-primary" />
+                    Mark Attendance
+                  </CardTitle>
+                  <CardDescription>Record attendance for a class session</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="att-subject">Subject</Label>
+                    <Select value={attendanceSubject} onValueChange={setAttendanceSubject}>
+                      <SelectTrigger className="h-11"><SelectValue placeholder="Select subject" /></SelectTrigger>
+                      <SelectContent>
+                        {subjects.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="att-date">Date</Label>
+                    <Input id="att-date" type="date" value={attendanceDate} onChange={(e) => setAttendanceDate(e.target.value)} className="h-11" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="att-usns">Student USNs (comma-separated)</Label>
+                    <Textarea id="att-usns" value={attendanceUsns} onChange={(e) => setAttendanceUsns(e.target.value)} placeholder="1XX21CS001, 1XX21CS002, ..." />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="att-status">Status</Label>
+                    <Select value={attendanceStatus} onValueChange={setAttendanceStatus}>
+                      <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="present">Present</SelectItem>
+                        <SelectItem value="absent">Absent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    className="w-full"
+                    disabled={!attendanceSubject || !attendanceDate || !attendanceUsns.trim()}
+                    onClick={async () => {
+                      const usns = attendanceUsns.split(',').map(u => u.trim()).filter(Boolean);
+                      const success = await markAttendance(usns, attendanceSubject, attendanceDate, attendanceStatus, user?.id || '');
+                      if (success) setAttendanceUsns('');
+                    }}
+                  >
+                    Mark Attendance
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Attendance Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Student Attendance Summary</CardTitle>
+                  <CardDescription>Overview of attendance across all students</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {attendanceLoading ? (
+                    <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+                  ) : (
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      {getStudentAttendanceSummaries().length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                          <UserCheck className="mb-3 h-10 w-10 text-muted-foreground/40" />
+                          <p className="text-muted-foreground">No attendance records yet.</p>
+                        </div>
+                      ) : (
+                        getStudentAttendanceSummaries().map((s) => (
+                          <div key={s.usn} className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3">
+                            <div>
+                              <p className="font-medium text-foreground">{s.usn}</p>
+                              <p className="text-xs text-muted-foreground">{s.present}/{s.totalClasses} classes attended</p>
+                            </div>
+                            <Badge variant={s.percentage >= 75 ? 'default' : s.percentage >= 60 ? 'secondary' : 'destructive'}>
+                              {s.percentage}%
+                            </Badge>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
 
