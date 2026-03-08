@@ -294,6 +294,10 @@ const StudentDashboard = () => {
           <TabsContent value="ml-analysis">
             <MLAnalysisDashboard />
           </TabsContent>
+
+          <TabsContent value="skills">
+            <SkillInterestAnalysis marks={marks} />
+          </TabsContent>
         </Tabs>
 
         {/* Subject Marks Table */}
