@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { logError } from '@/lib/errorLogger';
 
-export type UserRole = 'student' | 'lecturer' | 'parent' | null;
+export type UserRole = 'student' | 'lecturer' | 'parent' | 'counselor' | null;
 
 interface Profile {
   id: string;
