@@ -210,7 +210,7 @@ const TestsPage = () => {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsTestDialogOpen(false)}>Cancel</Button>
-                  <Button onClick={handleCreateTest} disabled={!newTest.title || !newTest.due_date}>Create Test</Button>
+                  <Button onClick={handleCreateTest} disabled={!newTest.title}>Create Test</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
