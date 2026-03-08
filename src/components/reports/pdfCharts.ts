@@ -129,19 +129,21 @@ export const drawPieChart = (
 
   let startAngle = -Math.PI / 2; // Start from top
 
+  // First pass: draw all slices
+  const slices: { midAngle: number; pct: number; color: [number, number, number]; label: string }[] = [];
+  let angle = startAngle;
   data.forEach((item) => {
     if (item.value === 0) return;
     const sliceAngle = (item.value / total) * 2 * Math.PI;
-    const endAngle = startAngle + sliceAngle;
+    const endAngle = angle + sliceAngle;
 
-    // Draw slice using many small triangles
     doc.setFillColor(item.color[0], item.color[1], item.color[2]);
     const steps = Math.max(Math.ceil(sliceAngle / 0.05), 8);
     const angleStep = sliceAngle / steps;
 
     for (let s = 0; s < steps; s++) {
-      const a1 = startAngle + s * angleStep;
-      const a2 = startAngle + (s + 1) * angleStep;
+      const a1 = angle + s * angleStep;
+      const a2 = angle + (s + 1) * angleStep;
       const x1 = centerX + radius * Math.cos(a1);
       const y1 = centerY + radius * Math.sin(a1);
       const x2 = centerX + radius * Math.cos(a2);
@@ -149,29 +151,43 @@ export const drawPieChart = (
       doc.triangle(centerX, centerY, x1, y1, x2, y2, 'F');
     }
 
-    // Label line & text
-    const midAngle = startAngle + sliceAngle / 2;
-    const labelRadius = radius + 10;
-    const lx = centerX + labelRadius * Math.cos(midAngle);
-    const ly = centerY + labelRadius * Math.sin(midAngle);
     const pct = Math.round((item.value / total) * 100);
-
     if (pct >= 3) {
-      doc.setDrawColor(item.color[0], item.color[1], item.color[2]);
-      doc.setLineWidth(0.4);
-      const innerX = centerX + (radius - 2) * Math.cos(midAngle);
-      const innerY = centerY + (radius - 2) * Math.sin(midAngle);
-      doc.line(innerX, innerY, lx, ly);
-
-      doc.setFontSize(6.5);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(item.color[0], item.color[1], item.color[2]);
-      const align = Math.cos(midAngle) >= 0 ? 'left' : 'right';
-      const textX = Math.cos(midAngle) >= 0 ? lx + 2 : lx - 2;
-      doc.text(`${item.label} (${pct}%)`, textX, ly + 1.5, { align });
+      slices.push({ midAngle: angle + sliceAngle / 2, pct, color: item.color, label: item.label });
     }
+    angle = endAngle;
+  });
 
-    startAngle = endAngle;
+  // Second pass: place labels with collision avoidance
+  const labelRadius = radius + 14;
+  const placedLabels: { x: number; y: number }[] = [];
+  const MIN_GAP = 8; // minimum vertical gap between labels
+
+  slices.forEach((slice) => {
+    let lx = centerX + labelRadius * Math.cos(slice.midAngle);
+    let ly = centerY + labelRadius * Math.sin(slice.midAngle);
+
+    // Push labels apart vertically if they overlap
+    for (const placed of placedLabels) {
+      if (Math.abs(ly - placed.y) < MIN_GAP && Math.abs(lx - placed.x) < 40) {
+        ly = ly > placed.y ? placed.y + MIN_GAP : placed.y - MIN_GAP;
+      }
+    }
+    placedLabels.push({ x: lx, y: ly });
+
+    const innerX = centerX + (radius - 2) * Math.cos(slice.midAngle);
+    const innerY = centerY + (radius - 2) * Math.sin(slice.midAngle);
+
+    doc.setDrawColor(slice.color[0], slice.color[1], slice.color[2]);
+    doc.setLineWidth(0.4);
+    doc.line(innerX, innerY, lx, ly);
+
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(slice.color[0], slice.color[1], slice.color[2]);
+    const align = Math.cos(slice.midAngle) >= 0 ? 'left' : 'right';
+    const textX = Math.cos(slice.midAngle) >= 0 ? lx + 3 : lx - 3;
+    doc.text(`${slice.label} (${slice.pct}%)`, textX, ly + 1.5, { align });
   });
 
   doc.setTextColor(0, 0, 0);
