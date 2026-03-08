@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Loader2, ArrowLeft, Download, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Users, Loader2, ArrowLeft, Download, CheckCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { logError } from '@/lib/errorLogger';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'sonner';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface Submission {
   student_usn: string;
@@ -81,6 +82,42 @@ export const TestSubmissions = ({ testId, testTitle, maxScore, onBack }: TestSub
     : 0;
   const highestScore = submissions.length > 0 ? Math.max(...submissions.filter(s => s.score !== null).map(s => s.score!), 0) : 0;
   const lowestScore = completedCount > 0 ? Math.min(...submissions.filter(s => s.status === 'completed' && s.score !== null).map(s => s.score!)) : 0;
+
+  const GRADE_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+
+  const histogramData = useMemo(() => {
+    const bins = [
+      { range: '0-20', min: 0, max: 20, count: 0 },
+      { range: '21-40', min: 21, max: 40, count: 0 },
+      { range: '41-60', min: 41, max: 60, count: 0 },
+      { range: '61-80', min: 61, max: 80, count: 0 },
+      { range: '81-100', min: 81, max: 100, count: 0 },
+    ];
+    submissions
+      .filter(s => s.status === 'completed' && s.score !== null)
+      .forEach(s => {
+        const bin = bins.find(b => s.score! >= b.min && s.score! <= b.max);
+        if (bin) bin.count++;
+      });
+    return bins.map(b => ({ range: b.range, Students: b.count }));
+  }, [submissions]);
+
+  const gradeBreakdown = useMemo(() => {
+    const grades = [
+      { name: 'Excellent (81-100)', min: 81, max: 100, value: 0 },
+      { name: 'Good (61-80)', min: 61, max: 80, value: 0 },
+      { name: 'Average (41-60)', min: 41, max: 60, value: 0 },
+      { name: 'Below Avg (21-40)', min: 21, max: 40, value: 0 },
+      { name: 'Poor (0-20)', min: 0, max: 20, value: 0 },
+    ];
+    submissions
+      .filter(s => s.status === 'completed' && s.score !== null)
+      .forEach(s => {
+        const g = grades.find(g => s.score! >= g.min && s.score! <= g.max);
+        if (g) g.value++;
+      });
+    return grades.filter(g => g.value > 0);
+  }, [submissions]);
 
   const exportPDF = () => {
     try {
@@ -189,6 +226,46 @@ export const TestSubmissions = ({ testId, testTitle, maxScore, onBack }: TestSub
           </CardContent>
         </Card>
       </div>
+
+      {/* Score Distribution Charts */}
+      {completedCount > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Score Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={histogramData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis dataKey="range" tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
+                  <Bar dataKey="Students" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Grade Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={gradeBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${value}`}>
+                    {gradeBreakdown.map((_, i) => (
+                      <Cell key={i} fill={GRADE_COLORS[i % GRADE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Submissions table */}
       <Card>
