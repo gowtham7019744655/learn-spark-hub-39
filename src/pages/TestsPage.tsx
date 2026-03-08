@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import { TestTaking } from '@/components/tests/TestTaking';
 import { TestResults } from '@/components/tests/TestResults';
 import { TestLeaderboard } from '@/components/tests/TestLeaderboard';
+import { TestSubmissions } from '@/components/tests/TestSubmissions';
 
 const TestsPage = () => {
   const { isAuthenticated, profile, role, user } = useAuth();
@@ -36,6 +37,7 @@ const TestsPage = () => {
   // Lecturer state
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
   const [addingQuestionsToTest, setAddingQuestionsToTest] = useState<string | null>(null);
+  const [viewingSubmissions, setViewingSubmissions] = useState<string | null>(null);
   const [newTest, setNewTest] = useState({
     title: '', description: '', subject_id: '', duration_minutes: 60,
     total_questions: 10, max_score: 100, due_date: '',
