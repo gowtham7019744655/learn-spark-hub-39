@@ -311,7 +311,7 @@ const StudentDashboard = () => {
             <SkillInterestAnalysis marks={marks} />
           </TabsContent>
 
-          <TabsContent value="attendance">
+          <TabsContent value="attendance" className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -364,6 +364,8 @@ const StudentDashboard = () => {
                 )}
               </CardContent>
             </Card>
+
+            <AttendanceCalendar records={attendanceRecords} />
           </TabsContent>
         </Tabs>
 
