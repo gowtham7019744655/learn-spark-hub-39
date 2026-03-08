@@ -634,6 +634,22 @@ const LecturerDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Question Manager Dialog */}
+          {addingQuestionsToTest && (
+            <Dialog open={!!addingQuestionsToTest} onOpenChange={(open) => { if (!open) setAddingQuestionsToTest(null); }}>
+              <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add Questions to Test</DialogTitle>
+                  <DialogDescription>Add MCQ questions for students to answer</DialogDescription>
+                </DialogHeader>
+                <QuestionManager
+                  testId={addingQuestionsToTest}
+                  onDone={() => setAddingQuestionsToTest(null)}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
+
           <TabsContent value="attendance" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
               {/* Mark Attendance Form */}
