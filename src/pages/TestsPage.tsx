@@ -145,6 +145,27 @@ const TestsPage = () => {
     );
   }
 
+  // Lecturer: View submissions mode
+  if (viewingSubmissions && isLecturer) {
+    const test = myTests.find(t => t.id === viewingSubmissions);
+    if (!test) {
+      setViewingSubmissions(null);
+      return null;
+    }
+    return (
+      <MainLayout>
+        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+          <TestSubmissions
+            testId={test.id}
+            testTitle={test.title}
+            maxScore={test.max_score}
+            onBack={() => setViewingSubmissions(null)}
+          />
+        </div>
+      </MainLayout>
+    );
+  }
+
   // Test-taking mode (students only)
   if (takingTest && profile?.usn && !isLecturer) {
     const test = categorizedTests.find(t => t.id === takingTest);
