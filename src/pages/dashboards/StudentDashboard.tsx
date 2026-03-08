@@ -6,6 +6,7 @@ import { RootCauseAnalyzer } from '@/components/analysis/RootCauseAnalyzer';
 import { ProgressDashboard } from '@/components/analysis/ProgressDashboard';
 import { PerformancePredictor } from '@/components/analysis/PerformancePredictor';
 import { MLAnalysisDashboard } from '@/components/analysis/MLAnalysisDashboard';
+import { SkillInterestAnalysis } from '@/components/student/SkillInterestAnalysis';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import {
   Mail,
   Hash,
   Layers,
+  Compass,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -185,6 +187,10 @@ const StudentDashboard = () => {
               <Activity className="h-4 w-4" />
               ML Models
             </TabsTrigger>
+            <TabsTrigger value="skills" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <Compass className="h-4 w-4" />
+              Skills & Interests
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -287,6 +293,10 @@ const StudentDashboard = () => {
 
           <TabsContent value="ml-analysis">
             <MLAnalysisDashboard />
+          </TabsContent>
+
+          <TabsContent value="skills">
+            <SkillInterestAnalysis marks={marks} />
           </TabsContent>
         </Tabs>
 

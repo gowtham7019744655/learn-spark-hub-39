@@ -19,6 +19,7 @@ export const Navbar = () => {
     switch (role) {
       case 'student': return '/student/dashboard';
       case 'lecturer': return '/lecturer/dashboard';
+      case 'counselor': return '/counselor/dashboard';
       default: return '/';
     }
   };
@@ -31,7 +32,7 @@ export const Navbar = () => {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
               <GraduationCap className="h-5 w-5 text-primary" />
             </div>
-            <span className="text-lg font-bold text-foreground">Performance Hub</span>
+            <span className="text-lg font-bold text-foreground">EDU-PREDICT</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -64,7 +65,10 @@ export const Navbar = () => {
                   <Button variant="ghost" size="sm" className="text-sm font-medium">Student</Button>
                 </Link>
                 <Link to="/login/lecturer">
-                  <Button variant="ghost" size="sm" className="text-sm font-medium">Lecturer</Button>
+                  <Button variant="ghost" size="sm" className="text-sm font-medium">Professor</Button>
+                </Link>
+                <Link to="/login/counselor">
+                  <Button variant="ghost" size="sm" className="text-sm font-medium">Counselor</Button>
                 </Link>
               </>
             )}
@@ -117,7 +121,10 @@ export const Navbar = () => {
                     <Button variant="ghost" className="w-full justify-start font-medium">Student Login</Button>
                   </Link>
                   <Link to="/login/lecturer" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start font-medium">Lecturer Login</Button>
+                    <Button variant="ghost" className="w-full justify-start font-medium">Professor Login</Button>
+                  </Link>
+                  <Link to="/login/counselor" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start font-medium">Counselor Login</Button>
                   </Link>
                 </>
               )}
