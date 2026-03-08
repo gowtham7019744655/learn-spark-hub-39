@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAttendance } from '@/hooks/useAttendance';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { Navigate } from 'react-router-dom';
 import {
   HeartHandshake, Users, AlertTriangle, TrendingDown, TrendingUp,
   Loader2, ShieldAlert, Target, Brain, BarChart3, Calendar,
-  BookOpen, Activity,
+  BookOpen, Activity, UserCheck,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -35,6 +36,7 @@ const CounselorDashboard = () => {
   const { profile, role, isAuthenticated, loading: authLoading } = useAuth();
   const [studentRisks, setStudentRisks] = useState<StudentRisk[]>([]);
   const [loading, setLoading] = useState(true);
+  const { getStudentAttendanceSummaries, loading: attendanceLoading } = useAttendance();
 
   const gradeToGP = (grade: string | null): number => {
     const map: Record<string, number> = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'P': 4, 'F': 0 };
@@ -356,7 +358,7 @@ const CounselorDashboard = () => {
                     </div>
                     <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3">
                       <span className="text-sm font-medium text-foreground">Attendance Correlation</span>
-                      <Badge variant="outline">Coming soon</Badge>
+                      <Badge variant="default">Active</Badge>
                     </div>
                     <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3">
                       <span className="text-sm font-medium text-foreground">Improvement Tracking</span>
@@ -395,6 +397,48 @@ const CounselorDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Attendance Alerts */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <UserCheck className="h-5 w-5 text-primary" />
+                  Low Attendance Alerts
+                </CardTitle>
+                <CardDescription>Students with attendance below 75%</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {attendanceLoading ? (
+                  <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+                ) : (
+                  <div className="space-y-3">
+                    {getStudentAttendanceSummaries().filter(s => s.percentage < 75).length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <UserCheck className="mb-3 h-10 w-10 text-muted-foreground/40" />
+                        <p className="text-muted-foreground">No low-attendance students detected.</p>
+                      </div>
+                    ) : (
+                      getStudentAttendanceSummaries().filter(s => s.percentage < 75).map((s) => (
+                        <div key={s.usn} className="flex items-center justify-between rounded-xl border border-border p-4 transition-all hover:shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+                              <AlertTriangle className="h-5 w-5 text-destructive" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-foreground">{s.usn}</p>
+                              <p className="text-xs text-muted-foreground">{s.present}/{s.totalClasses} classes attended</p>
+                            </div>
+                          </div>
+                          <Badge variant={s.percentage < 50 ? 'destructive' : 'secondary'}>
+                            {s.percentage}%
+                          </Badge>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
