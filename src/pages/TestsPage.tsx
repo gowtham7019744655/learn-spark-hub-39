@@ -18,11 +18,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Navigate } from 'react-router-dom';
-import { Clock, CheckCircle, PlayCircle, FileText, Award, Loader2, ArrowLeft, PlusCircle, Trash2, ListPlus, ClipboardCheck } from 'lucide-react';
+import { Clock, CheckCircle, PlayCircle, FileText, Award, Loader2, ArrowLeft, PlusCircle, Trash2, ListPlus, ClipboardCheck, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { TestTaking } from '@/components/tests/TestTaking';
 import { TestResults } from '@/components/tests/TestResults';
 import { TestLeaderboard } from '@/components/tests/TestLeaderboard';
+import { TestSubmissions } from '@/components/tests/TestSubmissions';
 
 const TestsPage = () => {
   const { isAuthenticated, profile, role, user } = useAuth();
@@ -36,6 +37,7 @@ const TestsPage = () => {
   // Lecturer state
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
   const [addingQuestionsToTest, setAddingQuestionsToTest] = useState<string | null>(null);
+  const [viewingSubmissions, setViewingSubmissions] = useState<string | null>(null);
   const [newTest, setNewTest] = useState({
     title: '', description: '', subject_id: '', duration_minutes: 60,
     total_questions: 10, max_score: 100, due_date: '',
@@ -137,6 +139,27 @@ const TestsPage = () => {
             studentUsn={profile.usn}
             score={test.score}
             onBack={() => setViewingResults(null)}
+          />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Lecturer: View submissions mode
+  if (viewingSubmissions && isLecturer) {
+    const test = myTests.find(t => t.id === viewingSubmissions);
+    if (!test) {
+      setViewingSubmissions(null);
+      return null;
+    }
+    return (
+      <MainLayout>
+        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+          <TestSubmissions
+            testId={test.id}
+            testTitle={test.title}
+            maxScore={test.max_score}
+            onBack={() => setViewingSubmissions(null)}
           />
         </div>
       </MainLayout>
@@ -286,6 +309,11 @@ const TestsPage = () => {
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0 ml-3">
+                          {test.status === 'published' && (
+                            <Button variant="outline" size="sm" className="shadow-sm gap-1" onClick={() => setViewingSubmissions(test.id)}>
+                              <Users className="h-3.5 w-3.5" /> Submissions
+                            </Button>
+                          )}
                           {test.status === 'draft' && (
                             <>
                               <Button variant="outline" size="sm" className="shadow-sm gap-1" onClick={() => setAddingQuestionsToTest(test.id)}>
