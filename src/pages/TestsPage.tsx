@@ -309,6 +309,11 @@ const TestsPage = () => {
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0 ml-3">
+                          {test.status === 'published' && (
+                            <Button variant="outline" size="sm" className="shadow-sm gap-1" onClick={() => setViewingSubmissions(test.id)}>
+                              <Users className="h-3.5 w-3.5" /> Submissions
+                            </Button>
+                          )}
                           {test.status === 'draft' && (
                             <>
                               <Button variant="outline" size="sm" className="shadow-sm gap-1" onClick={() => setAddingQuestionsToTest(test.id)}>
