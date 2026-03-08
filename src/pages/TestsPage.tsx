@@ -22,6 +22,7 @@ import { Clock, CheckCircle, PlayCircle, FileText, Award, Loader2, ArrowLeft, Pl
 import { format } from 'date-fns';
 import { TestTaking } from '@/components/tests/TestTaking';
 import { TestResults } from '@/components/tests/TestResults';
+import { TestLeaderboard } from '@/components/tests/TestLeaderboard';
 
 const TestsPage = () => {
   const { isAuthenticated, profile, role, user } = useAuth();
@@ -357,6 +358,14 @@ const TestsPage = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Leaderboard */}
+        <div className="mb-8">
+          <TestLeaderboard
+            tests={tests.filter(t => t.status === 'published').map(t => ({ id: t.id, title: t.title }))}
+            currentUsn={profile?.usn || undefined}
+          />
         </div>
 
         {/* Published Tests Section */}
