@@ -94,7 +94,7 @@ const TestsPage = () => {
       duration_minutes: newTest.duration_minutes,
       total_questions: newTest.total_questions,
       max_score: newTest.max_score,
-      due_date: newTest.due_date,
+      due_date: newTest.due_date || null,
       created_by: user?.id || '',
       status: 'draft',
     });
