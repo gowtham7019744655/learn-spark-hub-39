@@ -6,6 +6,7 @@ import { useTests } from '@/hooks/useTests';
 import { useSubjects } from '@/hooks/useSubjects';
 import { useAttendance } from '@/hooks/useAttendance';
 import { supabase } from '@/integrations/supabase/client';
+import { QuestionManager } from '@/components/tests/QuestionManager';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -26,7 +27,7 @@ import {
 import { Link, Navigate } from 'react-router-dom';
 import {
   Users, BookOpen, FileText, TrendingUp, Clock, PlusCircle, Trash2,
-  Calendar, ClipboardCheck, Loader2, LayoutDashboard, UserCheck, Download,
+  Calendar, ClipboardCheck, Loader2, LayoutDashboard, UserCheck, Download, ListPlus,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -62,6 +63,7 @@ const LecturerDashboard = () => {
 
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
+  const [addingQuestionsToTest, setAddingQuestionsToTest] = useState<string | null>(null);
   const [newAssignment, setNewAssignment] = useState({
     title: '', description: '', course_code: '', due_date: '',
   });
@@ -612,7 +614,12 @@ const LecturerDashboard = () => {
                           </div>
                           <div className="flex gap-2 shrink-0 ml-3">
                             {test.status === 'draft' && (
-                              <Button variant="outline" size="sm" className="shadow-sm" onClick={() => handlePublishTest(test.id)}>Publish</Button>
+                              <>
+                                <Button variant="outline" size="sm" className="shadow-sm gap-1" onClick={() => setAddingQuestionsToTest(test.id)}>
+                                  <ListPlus className="h-3.5 w-3.5" /> Questions
+                                </Button>
+                                <Button variant="outline" size="sm" className="shadow-sm" onClick={() => handlePublishTest(test.id)}>Publish</Button>
+                              </>
                             )}
                             <Button variant="destructive" size="icon" className="opacity-70 hover:opacity-100" onClick={() => handleDeleteTest(test.id)}>
                               <Trash2 className="h-4 w-4" />
@@ -626,6 +633,22 @@ const LecturerDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Question Manager Dialog */}
+          {addingQuestionsToTest && (
+            <Dialog open={!!addingQuestionsToTest} onOpenChange={(open) => { if (!open) setAddingQuestionsToTest(null); }}>
+              <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add Questions to Test</DialogTitle>
+                  <DialogDescription>Add MCQ questions for students to answer</DialogDescription>
+                </DialogHeader>
+                <QuestionManager
+                  testId={addingQuestionsToTest}
+                  onDone={() => setAddingQuestionsToTest(null)}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
 
           <TabsContent value="attendance" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">

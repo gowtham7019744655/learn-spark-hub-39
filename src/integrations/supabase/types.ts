@@ -145,6 +145,51 @@ export type Database = {
         }
         Relationships: []
       }
+      student_answers: {
+        Row: {
+          created_at: string
+          id: string
+          is_correct: boolean | null
+          question_id: string
+          selected_answer: string | null
+          student_usn: string
+          test_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          question_id: string
+          selected_answer?: string | null
+          student_usn: string
+          test_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string
+          selected_answer?: string | null
+          student_usn?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "test_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_answers_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_marks: {
         Row: {
           created_at: string
@@ -256,6 +301,50 @@ export type Database = {
           semester?: number
         }
         Relationships: []
+      }
+      test_questions: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          id: string
+          marks: number
+          options: Json | null
+          question_order: number
+          question_text: string
+          question_type: string
+          test_id: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          id?: string
+          marks?: number
+          options?: Json | null
+          question_order?: number
+          question_text: string
+          question_type?: string
+          test_id: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          id?: string
+          marks?: number
+          options?: Json | null
+          question_order?: number
+          question_text?: string
+          question_type?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_questions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tests: {
         Row: {
