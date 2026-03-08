@@ -86,7 +86,7 @@ const TestsPage = () => {
   };
 
   const handleCreateTest = async () => {
-    if (!newTest.title || !newTest.due_date) return;
+    if (!newTest.title) return;
     const success = await addTest({
       title: newTest.title,
       description: newTest.description || null,
