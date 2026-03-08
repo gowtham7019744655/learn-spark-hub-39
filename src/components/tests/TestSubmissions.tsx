@@ -138,9 +138,16 @@ export const TestSubmissions = ({ testId, testTitle, maxScore, onBack }: TestSub
         <ArrowLeft className="h-4 w-4" /> Back to Tests
       </Button>
 
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">{testTitle}</h2>
-        <p className="text-muted-foreground">Student submissions and scores</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">{testTitle}</h2>
+          <p className="text-muted-foreground">Student submissions and scores</p>
+        </div>
+        {submissions.length > 0 && (
+          <Button variant="outline" className="gap-2" onClick={exportPDF}>
+            <Download className="h-4 w-4" /> Export PDF
+          </Button>
+        )}
       </div>
 
       {/* Stats */}
