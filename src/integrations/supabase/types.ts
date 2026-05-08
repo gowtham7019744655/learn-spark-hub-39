@@ -88,6 +88,48 @@ export type Database = {
           },
         ]
       }
+      counseling_requests: {
+        Row: {
+          counselor_notes: string | null
+          created_at: string
+          handled_by: string | null
+          id: string
+          message: string | null
+          status: string
+          student_email: string | null
+          student_name: string | null
+          student_user_id: string
+          student_usn: string | null
+          updated_at: string
+        }
+        Insert: {
+          counselor_notes?: string | null
+          created_at?: string
+          handled_by?: string | null
+          id?: string
+          message?: string | null
+          status?: string
+          student_email?: string | null
+          student_name?: string | null
+          student_user_id: string
+          student_usn?: string | null
+          updated_at?: string
+        }
+        Update: {
+          counselor_notes?: string | null
+          created_at?: string
+          handled_by?: string | null
+          id?: string
+          message?: string | null
+          status?: string
+          student_email?: string | null
+          student_name?: string | null
+          student_user_id?: string
+          student_usn?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       parent_children: {
         Row: {
           approved: boolean
