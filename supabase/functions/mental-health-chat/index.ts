@@ -120,44 +120,8 @@ serve(async (req) => {
       console.log("tool parse error", e);
     }
 
-    let counseling_request_created = false;
-    if (risk_level === "high" || risk_level === "medium") {
-      const supabase = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-      );
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("usn, full_name, email")
-        .eq("id", userId)
-        .maybeSingle();
-
-      // Avoid spamming: only create if no pending request in last 24h
-      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data: recent } = await supabase
-        .from("counseling_requests")
-        .select("id")
-        .eq("student_user_id", userId)
-        .eq("status", "pending")
-        .gte("created_at", since)
-        .limit(1);
-
-      if (!recent || recent.length === 0) {
-        const { error: insertErr } = await supabase.from("counseling_requests").insert({
-          student_user_id: userId,
-          student_usn: profile?.usn ?? null,
-          student_name: profile?.full_name ?? null,
-          student_email: profile?.email ?? null,
-          message: `[Auto-flagged ${risk_level.toUpperCase()} risk by AI Wellness Chat] ${summary}`,
-          status: "pending",
-        });
-        if (insertErr) console.log("insert err", insertErr);
-        else counseling_request_created = true;
-      }
-    }
-
     return new Response(
-      JSON.stringify({ reply, risk_level, summary, counseling_request_created }),
+      JSON.stringify({ reply, risk_level, summary }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
