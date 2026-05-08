@@ -102,7 +102,32 @@ export const RealCounselingRequest = () => {
         </div>
 
         <div>
-          <h4 className="mb-3 text-sm font-semibold text-foreground">Your Requests</h4>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h4 className="text-sm font-semibold text-foreground">Your Requests</h4>
+            <div className="flex flex-wrap gap-2">
+              {(['pending', 'in_progress', 'resolved'] as const).map((s) => {
+                const meta = statusMeta[s];
+                const Icon = meta.icon;
+                const count = requests.filter(r => r.status === s).length;
+                return (
+                  <Badge key={s} variant={meta.variant} className="gap-1">
+                    <Icon className="h-3 w-3" />{meta.label}: {count}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+          {(() => {
+            const latestWithNote = requests.find(r => r.counselor_notes);
+            if (!latestWithNote) return null;
+            return (
+              <div className="mb-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                <p className="text-xs font-semibold text-primary mb-1">Latest counselor note</p>
+                <p className="text-sm text-foreground">{latestWithNote.counselor_notes}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{new Date(latestWithNote.updated_at).toLocaleString()}</p>
+              </div>
+            );
+          })()}
           {loading ? (
             <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
           ) : requests.length === 0 ? (
