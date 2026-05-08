@@ -28,17 +28,19 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Validate JWT via getClaims (works with signing-keys system)
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
-      console.log("Auth claims failed:", claimsError?.message);
+    let userId: string;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+      if (!payload.sub) throw new Error("Missing sub");
+      userId = payload.sub;
+    } catch (e) {
+      console.log("JWT decode failed:", (e as Error).message);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = claimsData.claims.sub;
 
     // Get user's USN from profile
     const { data: profile } = await supabase
