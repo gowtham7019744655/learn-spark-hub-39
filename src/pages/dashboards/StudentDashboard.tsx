@@ -11,6 +11,7 @@ import { SkillInterestAnalysis } from '@/components/student/SkillInterestAnalysi
 import { AttendanceCalendar } from '@/components/student/AttendanceCalendar';
 import { CareerCoach } from '@/components/student/CareerCoach';
 import { RealCounselingRequest } from '@/components/student/RealCounselingRequest';
+import { MentalHealthChat } from '@/components/student/MentalHealthChat';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -375,6 +376,7 @@ const StudentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="counseling" className="space-y-6">
+            <MentalHealthChat />
             <RealCounselingRequest />
             <CareerCoach />
           </TabsContent>
