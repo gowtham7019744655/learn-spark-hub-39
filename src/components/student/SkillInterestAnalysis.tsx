@@ -195,3 +195,96 @@ export const SkillInterestAnalysis = ({ marks }: SkillInterestAnalysisProps) => 
     </div>
   );
 };
+
+const ResourcesDialog = ({ subject }: { subject: string }) => {
+  const q = encodeURIComponent(subject);
+  const tutorialQ = encodeURIComponent(`${subject} full course tutorial`);
+  const resources = [
+    {
+      label: 'YouTube — Full Course',
+      desc: 'Top-rated full course tutorials',
+      url: `https://www.youtube.com/results?search_query=${tutorialQ}`,
+      icon: Youtube,
+      color: 'text-red-600',
+    },
+    {
+      label: 'YouTube — Concepts Explained',
+      desc: 'Bite-sized concept videos',
+      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${subject} explained for beginners`)}`,
+      icon: Youtube,
+      color: 'text-red-600',
+    },
+    {
+      label: 'NPTEL Lectures',
+      desc: 'IIT/IISc free university courses',
+      url: `https://nptel.ac.in/courses?searchText=${q}`,
+      icon: GraduationCap,
+      color: 'text-blue-600',
+    },
+    {
+      label: 'Khan Academy',
+      desc: 'Step-by-step lessons & practice',
+      url: `https://www.khanacademy.org/search?page_search_query=${q}`,
+      icon: BookOpen,
+      color: 'text-green-600',
+    },
+    {
+      label: 'GeeksforGeeks',
+      desc: 'Notes, examples, and problems',
+      url: `https://www.geeksforgeeks.org/?s=${q}`,
+      icon: Globe,
+      color: 'text-emerald-600',
+    },
+    {
+      label: 'Google Scholar / Notes',
+      desc: 'Reference material & PDFs',
+      url: `https://www.google.com/search?q=${encodeURIComponent(`${subject} notes pdf`)}`,
+      icon: Globe,
+      color: 'text-amber-600',
+    },
+  ];
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="h-7 gap-1 text-xs">
+          <BookOpen className="h-3 w-3" /> Resources
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Lightbulb className="h-5 w-5 text-primary" />
+            Learning Resources — {subject}
+          </DialogTitle>
+          <DialogDescription>
+            Hand-picked free resources to strengthen your understanding of {subject}.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-2 mt-2">
+          {resources.map((r) => {
+            const Icon = r.icon;
+            return (
+              <a
+                key={r.label}
+                href={r.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3 transition hover:border-primary/40 hover:bg-primary/5"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background border border-border">
+                  <Icon className={`h-4 w-4 ${r.color}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">{r.label}</p>
+                  <p className="text-xs text-muted-foreground truncate">{r.desc}</p>
+                </div>
+                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+              </a>
+            );
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
