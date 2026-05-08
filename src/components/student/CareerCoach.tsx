@@ -8,7 +8,7 @@ import { toast } from '@/hooks/use-toast';
 
 const AGENT_ID = 'agent_0701kk6bqs4kfxsszw9p8p5bn4m9';
 
-export const CareerCoach = () => {
+const CareerCoachInner = () => {
   const [connecting, setConnecting] = useState(false);
 
   const conversation = useConversation({
