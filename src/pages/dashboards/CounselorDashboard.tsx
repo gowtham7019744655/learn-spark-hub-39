@@ -17,6 +17,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
+import { CounselingRequestsTracker } from '@/components/counselor/CounselingRequestsTracker';
 
 interface StudentRisk {
   usn: string;
