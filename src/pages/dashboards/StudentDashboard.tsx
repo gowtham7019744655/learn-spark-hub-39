@@ -376,6 +376,7 @@ const StudentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="counseling" className="space-y-6">
+            <MentalHealthChat />
             <RealCounselingRequest />
             <CareerCoach />
           </TabsContent>
