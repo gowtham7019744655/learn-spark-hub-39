@@ -9,6 +9,7 @@ import { PerformancePredictor } from '@/components/analysis/PerformancePredictor
 import { MLAnalysisDashboard } from '@/components/analysis/MLAnalysisDashboard';
 import { SkillInterestAnalysis } from '@/components/student/SkillInterestAnalysis';
 import { AttendanceCalendar } from '@/components/student/AttendanceCalendar';
+import { CareerCoach } from '@/components/student/CareerCoach';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -203,6 +204,10 @@ const StudentDashboard = () => {
               <UserCheck className="h-4 w-4" />
               Attendance
             </TabsTrigger>
+            <TabsTrigger value="counseling" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <Compass className="h-4 w-4" />
+              Counseling
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -366,6 +371,10 @@ const StudentDashboard = () => {
             </Card>
 
             <AttendanceCalendar records={attendanceRecords} />
+          </TabsContent>
+
+          <TabsContent value="counseling">
+            <CareerCoach />
           </TabsContent>
         </Tabs>
 
