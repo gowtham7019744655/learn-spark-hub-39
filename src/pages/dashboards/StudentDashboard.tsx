@@ -372,6 +372,10 @@ const StudentDashboard = () => {
 
             <AttendanceCalendar records={attendanceRecords} />
           </TabsContent>
+
+          <TabsContent value="counseling">
+            <CareerCoach />
+          </TabsContent>
         </Tabs>
 
         {/* Subject Marks Table */}
