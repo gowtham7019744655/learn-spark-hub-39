@@ -68,29 +68,25 @@ export const useMLAnalysis = () => {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
+      const activeSession = session?.expires_at && session.expires_at * 1000 <= Date.now()
+        ? (await supabase.auth.refreshSession()).data.session
+        : session;
+
+      if (!activeSession?.access_token) {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ml-analysis`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        }
-      );
+      const { data, error: invokeError } = await supabase.functions.invoke('ml-analysis', {
+        body: {},
+      });
 
-      if (!response.ok) {
-        if (response.status === 429) throw new Error('Rate limit exceeded. Please try again later.');
-        if (response.status === 402) throw new Error('Usage limit reached.');
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to get analysis');
+      if (invokeError) {
+        const context = invokeError.context as Response | undefined;
+        if (context?.status === 429) throw new Error('Rate limit exceeded. Please try again later.');
+        if (context?.status === 402) throw new Error('Usage limit reached.');
+        throw new Error(invokeError.message || 'Failed to get analysis');
       }
 
-      const data = await response.json();
       setAnalysis(data.analysis);
       return data;
     } catch (err) {
