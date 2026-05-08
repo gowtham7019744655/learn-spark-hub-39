@@ -157,3 +157,9 @@ const CareerCoachInner = () => {
     </div>
   );
 };
+
+export const CareerCoach = () => (
+  <ConversationProvider>
+    <CareerCoachInner />
+  </ConversationProvider>
+);
