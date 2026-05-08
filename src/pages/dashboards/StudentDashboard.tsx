@@ -374,7 +374,8 @@ const StudentDashboard = () => {
             <AttendanceCalendar records={attendanceRecords} />
           </TabsContent>
 
-          <TabsContent value="counseling">
+          <TabsContent value="counseling" className="space-y-6">
+            <RealCounselingRequest />
             <CareerCoach />
           </TabsContent>
         </Tabs>
