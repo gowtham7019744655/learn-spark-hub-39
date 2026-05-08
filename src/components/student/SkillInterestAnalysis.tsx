@@ -102,11 +102,12 @@ export const SkillInterestAnalysis = ({ marks }: SkillInterestAnalysisProps) => 
                   ) : (
                     <div className="space-y-2">
                       {weakSubjects.map(s => (
-                        <div key={s.name} className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-2.5">
-                          <span className="text-sm font-medium text-foreground">{s.name}</span>
-                          <div className="flex items-center gap-2">
+                        <div key={s.name} className="flex items-center justify-between gap-2 rounded-lg border border-border/50 bg-muted/20 p-2.5">
+                          <span className="text-sm font-medium text-foreground truncate">{s.name}</span>
+                          <div className="flex items-center gap-2 shrink-0">
                             <Badge variant="destructive" className="text-xs">{s.percentage}%</Badge>
                             <Badge variant="outline" className="text-xs">{s.grade}</Badge>
+                            <ResourcesDialog subject={s.name} />
                           </div>
                         </div>
                       ))}
