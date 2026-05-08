@@ -169,11 +169,19 @@ const CounselorDashboard = () => {
               <Target className="h-4 w-4" />
               Intervention Planning
             </TabsTrigger>
+            <TabsTrigger value="requests" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <HeartHandshake className="h-4 w-4" />
+              Requests
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
               <BarChart3 className="h-4 w-4" />
               Analytics
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="requests" className="space-y-6">
+            <CounselingRequestsTracker />
+          </TabsContent>
 
           <TabsContent value="risk-overview" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
