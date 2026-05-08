@@ -9,6 +9,7 @@ import { PerformancePredictor } from '@/components/analysis/PerformancePredictor
 import { MLAnalysisDashboard } from '@/components/analysis/MLAnalysisDashboard';
 import { SkillInterestAnalysis } from '@/components/student/SkillInterestAnalysis';
 import { AttendanceCalendar } from '@/components/student/AttendanceCalendar';
+import { CareerCoach } from '@/components/student/CareerCoach';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
