@@ -48,6 +48,16 @@ export const FloatingChatWidget = () => {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+    if (!isAuthenticated) {
+      setMessages((prev) => [...prev, {
+        id: prev.length + 1,
+        text: 'Please sign in to chat with the AI assistant.',
+        sender: 'bot',
+        timestamp: new Date(),
+      }]);
+      setInput('');
+      return;
+    }
 
     const userMessage: Message = {
       id: messages.length + 1,

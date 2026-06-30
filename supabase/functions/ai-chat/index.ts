@@ -13,30 +13,31 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
-    let userId: string | null = null;
-
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '');
-
-      const supabaseAuth = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-        {
-          global: { headers: { Authorization: authHeader } },
-          auth: { persistSession: false },
-        }
-      );
-
-      const { data, error: claimsError } = await supabaseAuth.auth.getClaims(token);
-
-      if (!claimsError && data?.claims?.sub) {
-        userId = data.claims.sub as string;
-      } else {
-        console.log('Proceeding as guest: invalid token');
-      }
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false },
+      }
+    );
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const userId = claimsData.claims.sub as string;
 
-    console.log(`Processing AI chat request (${userId ? 'authenticated' : 'guest'})`);
+    console.log(`Processing AI chat request for user ${userId}`);
 
     const { messages } = await req.json();
     
