@@ -28,18 +28,14 @@ serve(async (req) => {
     });
 
     const token = authHeader.replace("Bearer ", "");
-    let userId: string;
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
-      if (!payload.sub) throw new Error("Missing sub");
-      userId = payload.sub;
-    } catch (e) {
-      console.log("JWT decode failed:", (e as Error).message);
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const userId = claimsData.claims.sub as string;
 
     const { data: profile } = await supabase
       .from("profiles")
