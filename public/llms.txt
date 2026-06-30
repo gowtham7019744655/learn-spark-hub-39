@@ -1,0 +1,16 @@
+# EDU-PREDICT
+
+> Academic performance and risk-prediction platform for higher education. Helps lecturers and counselors track student progress, predict at-risk learners, and plan evidence-based interventions.
+
+EDU-PREDICT combines assessment data, attendance, and ML-driven risk analytics to support student success. It serves three portals: Student, Professor, and Counselor.
+
+## Pages
+
+- [Home](/): Overview of EDU-PREDICT — analytics, assessments, and AI-assisted intervention planning.
+- [Student Login](/login/student): Sign in as a student to view performance, take tests, and access counseling.
+- [Professor Login](/login/lecturer): Sign in as a lecturer to manage tests, subjects, and class analytics.
+- [Counselor Login](/login/counselor): Sign in as a counselor to review at-risk students and respond to requests.
+
+## Guides
+
+- [Academic Risk Intervention Strategies](/blog/intervention-strategies): A practical guide on identifying at-risk students and applying early, evidence-based interventions in higher education.
