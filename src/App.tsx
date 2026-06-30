@@ -16,6 +16,7 @@ import CounselorDashboard from "./pages/dashboards/CounselorDashboard";
 import TestsPage from "./pages/TestsPage";
 import AdminPage from "./pages/AdminPage";
 import ManageSubjectsPage from "./pages/ManageSubjectsPage";
+import InterventionStrategies from "./pages/InterventionStrategies";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/tests" element={<TestsPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/manage-subjects" element={<ManageSubjectsPage />} />
+            <Route path="/blog/intervention-strategies" element={<InterventionStrategies />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
