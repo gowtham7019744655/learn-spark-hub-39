@@ -34,19 +34,20 @@ serve(async (req) => {
       });
     }
     const token = authHeader.replace("Bearer ", "");
-    let userId: string;
-    try {
-      const payload = JSON.parse(
-        atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
-      );
-      if (!payload.sub) throw new Error("Missing sub");
-      userId = payload.sub;
-    } catch {
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } }
+    );
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const userId = claimsData.claims.sub as string;
+    void userId;
 
     const { messages } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
