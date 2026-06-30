@@ -77,6 +77,11 @@ const Index = () => {
 
   return (
     <MainLayout>
+      <SEO
+        title="EDU-PREDICT — Student Performance & Risk Analytics"
+        description="Track academic performance, predict at-risk students, and plan evidence-based interventions across student, lecturer, and counselor portals."
+        path="/"
+      />
       {/* Hero Section */}
       <section className="relative overflow-hidden px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
         <div className="absolute inset-0 -z-10">
