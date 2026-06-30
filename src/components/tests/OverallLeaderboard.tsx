@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,10 +27,7 @@ export const OverallLeaderboard = ({ currentUsn }: OverallLeaderboardProps) => {
       setLoading(true);
 
       const { data, error } = await supabase
-        .from('student_tests')
-        .select('student_usn, score')
-        .eq('status', 'completed')
-        .not('score', 'is', null);
+        .rpc('get_overall_leaderboard', { p_limit: 25 });
 
       if (error) {
         logError('fetchOverallLeaderboard', error);
@@ -38,42 +35,13 @@ export const OverallLeaderboard = ({ currentUsn }: OverallLeaderboardProps) => {
         return;
       }
 
-      // Aggregate by student
-      const map = new Map<string, { total: number; count: number }>();
-      (data || []).forEach(row => {
-        const existing = map.get(row.student_usn) || { total: 0, count: 0 };
-        existing.total += row.score!;
-        existing.count += 1;
-        map.set(row.student_usn, existing);
-      });
-
-      // Fetch profile names
-      const usns = Array.from(map.keys());
-      let profileMap = new Map<string, string | null>();
-
-      if (usns.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('usn, full_name')
-          .in('usn', usns);
-        (profiles || []).forEach(p => {
-          if (p.usn) profileMap.set(p.usn, p.full_name);
-        });
-      }
-
-      const result: CumulativeEntry[] = usns
-        .map(usn => {
-          const { total, count } = map.get(usn)!;
-          return {
-            student_usn: usn,
-            full_name: profileMap.get(usn) || null,
-            totalScore: total,
-            testsCompleted: count,
-            avgScore: Math.round(total / count),
-          };
-        })
-        .sort((a, b) => b.totalScore - a.totalScore)
-        .slice(0, 25);
+      const result: CumulativeEntry[] = (data || []).map((row: any) => ({
+        student_usn: row.student_usn,
+        full_name: row.full_name,
+        totalScore: Number(row.total_score) || 0,
+        testsCompleted: Number(row.tests_completed) || 0,
+        avgScore: Number(row.avg_score) || 0,
+      }));
 
       setEntries(result);
       setLoading(false);

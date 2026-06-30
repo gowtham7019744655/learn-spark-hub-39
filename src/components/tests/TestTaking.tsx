@@ -15,9 +15,14 @@ interface Question {
   question_text: string;
   question_type: string;
   options: string[];
-  correct_answer: string;
   marks: number;
   question_order: number;
+}
+
+interface ReviewResult {
+  question_id: string;
+  correct_answer: string;
+  is_correct: boolean;
 }
 
 interface TestTakingProps {
@@ -47,22 +52,24 @@ export const TestTaking = ({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
+  const [reviewResults, setReviewResults] = useState<Record<string, ReviewResult>>({});
 
   useEffect(() => {
     const fetchQuestions = async () => {
       const { data, error } = await supabase
-        .from('test_questions')
-        .select('*')
-        .eq('test_id', testId)
-        .order('question_order');
+        .rpc('get_test_questions_for_student', { p_test_id: testId });
 
       if (error) {
         logError('fetchQuestions', error);
         toast.error('Failed to load questions');
       } else {
-        const parsed = (data || []).map(q => ({
-          ...q,
+        const parsed = (data || []).map((q: any) => ({
+          id: q.id,
+          question_text: q.question_text,
+          question_type: q.question_type,
           options: Array.isArray(q.options) ? q.options as string[] : JSON.parse(q.options as string || '[]'),
+          marks: q.marks,
+          question_order: q.question_order,
         }));
         setQuestions(parsed);
       }
@@ -99,52 +106,18 @@ export const TestTaking = ({
     setSubmitting(true);
 
     try {
-      let totalScore = 0;
-      const answerRows = questions.map(q => {
-        const selected = answers[q.id] || '';
-        const isCorrect = selected === q.correct_answer;
-        if (isCorrect) totalScore += q.marks;
-        return {
-          student_usn: studentUsn,
-          test_id: testId,
-          question_id: q.id,
-          selected_answer: selected || null,
-          is_correct: isCorrect,
-        };
+      const { data, error } = await supabase.rpc('submit_test', {
+        p_test_id: testId,
+        p_answers: answers,
       });
+      if (error) throw error;
 
-      // Insert answers
-      const { error: ansError } = await supabase.from('student_answers').upsert(answerRows, {
-        onConflict: 'student_usn,question_id',
-      });
-      if (ansError) throw ansError;
+      const payload = data as unknown as { score: number; results: ReviewResult[] } | null;
+      const percentage = payload?.score ?? 0;
+      const resultsMap: Record<string, ReviewResult> = {};
+      (payload?.results || []).forEach(r => { resultsMap[r.question_id] = r; });
 
-      // Calculate percentage
-      const totalMarks = questions.reduce((s, q) => s + q.marks, 0);
-      const percentage = totalMarks > 0 ? Math.round((totalScore / totalMarks) * 100) : 0;
-
-      // Update student_tests record
-      const { error: stError } = await supabase.from('student_tests').upsert({
-        student_usn: studentUsn,
-        test_id: testId,
-        score: percentage,
-        status: 'completed',
-        started_at: new Date().toISOString(),
-        completed_at: new Date().toISOString(),
-      }, { onConflict: 'student_usn,test_id' });
-
-      // If upsert fails due to no unique constraint, try insert
-      if (stError) {
-        await supabase.from('student_tests').insert({
-          student_usn: studentUsn,
-          test_id: testId,
-          score: percentage,
-          status: 'completed',
-          started_at: new Date().toISOString(),
-          completed_at: new Date().toISOString(),
-        });
-      }
-
+      setReviewResults(resultsMap);
       setScore(percentage);
       setSubmitted(true);
       toast.success(`Test submitted! Score: ${percentage}%`);
@@ -155,7 +128,7 @@ export const TestTaking = ({
     } finally {
       setSubmitting(false);
     }
-  }, [questions, answers, studentUsn, testId, submitting, submitted, onComplete]);
+  }, [answers, testId, submitting, submitted, onComplete]);
 
   if (loading) {
     return (
@@ -179,8 +152,7 @@ export const TestTaking = ({
   }
 
   if (submitted) {
-    const totalMarks = questions.reduce((s, q) => s + q.marks, 0);
-    const correctCount = questions.filter(q => answers[q.id] === q.correct_answer).length;
+    const correctCount = questions.filter(q => reviewResults[q.id]?.is_correct).length;
 
     return (
       <div className="space-y-6">
@@ -208,7 +180,9 @@ export const TestTaking = ({
           <CardContent className="space-y-4">
             {questions.map((q, i) => {
               const selected = answers[q.id];
-              const isCorrect = selected === q.correct_answer;
+              const review = reviewResults[q.id];
+              const isCorrect = !!review?.is_correct;
+              const correctAnswer = review?.correct_answer;
               return (
                 <div key={q.id} className={`rounded-xl border p-4 ${isCorrect ? 'border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20' : 'border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/20'}`}>
                   <div className="flex items-start gap-3">
@@ -219,10 +193,10 @@ export const TestTaking = ({
                         <span className="text-muted-foreground">Your answer: </span>
                         <span className={isCorrect ? 'text-green-600' : 'text-red-600'}>{selected || 'Not answered'}</span>
                       </p>
-                      {!isCorrect && (
+                      {!isCorrect && correctAnswer && (
                         <p className="text-sm">
                           <span className="text-muted-foreground">Correct answer: </span>
-                          <span className="text-green-600 font-medium">{q.correct_answer}</span>
+                          <span className="text-green-600 font-medium">{correctAnswer}</span>
                         </p>
                       )}
                     </div>

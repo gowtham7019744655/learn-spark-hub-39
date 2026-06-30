@@ -470,6 +470,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_overall_leaderboard: {
+        Args: { p_limit?: number }
+        Returns: {
+          avg_score: number
+          full_name: string
+          student_usn: string
+          tests_completed: number
+          total_score: number
+        }[]
+      }
+      get_test_leaderboard: {
+        Args: { p_limit?: number; p_test_id: string }
+        Returns: {
+          completed_at: string
+          full_name: string
+          score: number
+          student_usn: string
+        }[]
+      }
+      get_test_questions_for_student: {
+        Args: { p_test_id: string }
+        Returns: {
+          id: string
+          marks: number
+          options: Json
+          question_order: number
+          question_text: string
+          question_type: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -484,6 +514,10 @@ export type Database = {
       parent_can_view_student: {
         Args: { _parent_user_id: string; _student_usn: string }
         Returns: boolean
+      }
+      submit_test: {
+        Args: { p_answers: Json; p_test_id: string }
+        Returns: Json
       }
     }
     Enums: {

@@ -34,13 +34,7 @@ export const TestLeaderboard = ({ tests, currentUsn }: TestLeaderboardProps) => 
     const fetchLeaderboard = async () => {
       setLoading(true);
       const { data, error } = await supabase
-        .from('student_tests')
-        .select('student_usn, score, completed_at')
-        .eq('test_id', selectedTestId)
-        .eq('status', 'completed')
-        .not('score', 'is', null)
-        .order('score', { ascending: false })
-        .limit(20);
+        .rpc('get_test_leaderboard', { p_test_id: selectedTestId, p_limit: 20 });
 
       if (error) {
         logError('fetchLeaderboard', error);
@@ -49,25 +43,10 @@ export const TestLeaderboard = ({ tests, currentUsn }: TestLeaderboardProps) => 
         return;
       }
 
-      // Fetch profile names for the USNs
-      const usns = (data || []).map(d => d.student_usn);
-      let profileMap = new Map<string, string | null>();
-
-      if (usns.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('usn, full_name')
-          .in('usn', usns);
-
-        (profiles || []).forEach(p => {
-          if (p.usn) profileMap.set(p.usn, p.full_name);
-        });
-      }
-
-      const merged: LeaderboardEntry[] = (data || []).map(d => ({
+      const merged: LeaderboardEntry[] = (data || []).map((d: any) => ({
         student_usn: d.student_usn,
         score: d.score!,
-        full_name: profileMap.get(d.student_usn) || null,
+        full_name: d.full_name,
         completed_at: d.completed_at,
       }));
 
