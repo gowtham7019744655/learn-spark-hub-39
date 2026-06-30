@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { GraduationCap, BookOpen, HeartHandshake, BarChart3, Brain, Shield, Zap, ArrowRight } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { SEO } from '@/components/SEO';
 
 const Index = () => {
   const { isAuthenticated, role, loading } = useAuth();
