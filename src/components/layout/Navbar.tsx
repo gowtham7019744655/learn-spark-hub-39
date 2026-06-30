@@ -78,11 +78,13 @@ export const Navbar = () => {
           <button
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-muted/50 md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (
-              <X className="h-5 w-5 text-foreground" />
+              <X className="h-5 w-5 text-foreground" aria-hidden="true" />
             ) : (
-              <Menu className="h-5 w-5 text-foreground" />
+              <Menu className="h-5 w-5 text-foreground" aria-hidden="true" />
             )}
           </button>
         </div>

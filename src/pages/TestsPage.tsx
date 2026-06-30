@@ -323,8 +323,8 @@ const TestsPage = () => {
                               <Button variant="outline" size="sm" className="shadow-sm" onClick={() => handlePublishTest(test.id)}>Publish</Button>
                             </>
                           )}
-                          <Button variant="destructive" size="icon" className="opacity-70 hover:opacity-100" onClick={() => handleDeleteTest(test.id)}>
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="destructive" size="icon" className="opacity-70 hover:opacity-100" onClick={() => handleDeleteTest(test.id)} aria-label={`Delete test ${test.title}`}>
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

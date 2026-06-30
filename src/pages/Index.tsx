@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { GraduationCap, BookOpen, HeartHandshake, BarChart3, Brain, Shield, Zap, ArrowRight } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { SEO } from '@/components/SEO';
 
 const Index = () => {
   const { isAuthenticated, role, loading } = useAuth();
@@ -76,6 +77,11 @@ const Index = () => {
 
   return (
     <MainLayout>
+      <SEO
+        title="EDU-PREDICT — Student Performance & Risk Analytics"
+        description="Track academic performance, predict at-risk students, and plan evidence-based interventions across student, lecturer, and counselor portals."
+        path="/"
+      />
       {/* Hero Section */}
       <section className="relative overflow-hidden px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
         <div className="absolute inset-0 -z-10">
